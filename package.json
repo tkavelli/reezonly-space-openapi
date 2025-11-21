@@ -1,7 +1,7 @@
 {
-  "name": "openapi",
+  "name": "reezonly-space-openapi",
   "version": "1.0.0",
-  "description": "This repository contains [OpenAPI specifications][openapi] for Stripe's API.",
+  "description": "OpenAPI specification for Reezonly Space Platform API",
   "main": "index.js",
   "scripts": {
     "lint": "redocly lint space-platform-api.yaml",
@@ -14,16 +14,23 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/stripe/openapi.git"
+    "url": "git+https://github.com/reezonly/space-openapi.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "openapi",
+    "api",
+    "documentation",
+    "reezonly",
+    "space",
+    "lms"
+  ],
+  "author": "Reezonly",
+  "license": "MIT",
   "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/stripe/openapi/issues"
+    "url": "https://github.com/reezonly/space-openapi/issues"
   },
-  "homepage": "https://github.com/stripe/openapi#readme",
+  "homepage": "https://github.com/reezonly/space-openapi#readme",
   "devDependencies": {
     "@redocly/cli": "^1.25.0",
     "nodemon": "^3.1.7"
