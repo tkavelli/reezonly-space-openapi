@@ -1,0 +1,30 @@
+{
+  "name": "openapi",
+  "version": "1.0.0",
+  "description": "This repository contains [OpenAPI specifications][openapi] for Stripe's API.",
+  "main": "index.js",
+  "scripts": {
+    "lint": "redocly lint space-platform-api.yaml",
+    "bundle": "redocly bundle space-platform-api.yaml -o bundles/complete-api.yaml",
+    "build-docs": "redocly build-docs space-platform-api.yaml -o docs/index.html",
+    "watch": "nodemon --watch specs --ext yaml --exec \"npm run bundle\"",
+    "ci:spec": "npm run lint && npm run bundle",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stripe/openapi.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/stripe/openapi/issues"
+  },
+  "homepage": "https://github.com/stripe/openapi#readme",
+  "devDependencies": {
+    "@redocly/cli": "^1.25.0",
+    "nodemon": "^3.1.7"
+  }
+}

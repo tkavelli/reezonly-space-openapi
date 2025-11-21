@@ -1,0 +1,853 @@
+# Users Management API - 16 методов
+# Полный User Management блок из 45 приоритетных методов
+
+openapi: 3.1.0
+info:
+  title: Users Management API
+  version: 1.0.0
+  description: |
+    ## User Management — 16 методов
+
+    Раздел User Management предназначен для синхронизации пользователей между вашей CRM/ERP и платформой Space. Каждый пользователь имеет профиль с контактной информацией, роль доступа, статус и может быть участником групп и курсов.
+
+    User представляет пользователя в системе Reezonly Space. Каждый пользователь имеет профиль с контактной информацией, роль доступа, статус и может быть участником групп и курсов.
+
+tags:
+  - name: Users.Operations
+    description: |
+      ## Операции с пользователями
+
+      **Назначение:** централизованно создать, прочитать, обновить и удалить пользователей, сохраняя синхронизацию с LMS и бизнес-ролями.
+      **Ключевые особенности:**
+      - Протоколированная магистраль CRUD по `X-API-Key` с фильтрами/пагинацией.
+      - Полный сет схем `SuccessResponse`, `BadRequest`, `Forbidden`, `NotFound`, и `User`.
+      - Поддержка массовых операций (`delete?ids[]=`) и отдельных просмотров.
+      **Пример Use case:** интегратор CRM запрашивает `/user/user/index` для списка, показывает карточку и вызывает `PUT /user/user/update`, чтобы синхронно обновить кастомные поля и статусы.
+  - name: Users.Courses
+    description: |
+      ## Управление доступом пользователей к курсам
+
+      **Назначение:** быстро назначать/отзывать доступ к курсам из внешней LMS/CRM.
+      **Ключевые особенности:** набор `POST /add-course`/`POST /delete-course` с телом `user_id` + `course_ids`, проверка доступности и массовые обновления.
+      **Пример Use case:** маркетолог настраивает доступ студентов к новому продукту: сначала назначает нужный набор курсов, затем отзывает старые.
+  - name: Users.Import
+    description: |
+      ## Импорт пользователей
+
+      **Назначение:** загружать сотни пользователей и отслеживать прогресс асинхронно.
+      **Ключевые особенности:** предварительный `preview` (multipart с шаблоном), `load` создаёт задачу, `get-import-progress` возвращает `ImportStatus`, дополнительные отчёты XLSX.
+      **Пример Use case:** после оплаты клиент загружает Excel, смотрит превью, запускает импорт и регулярно проверяет статус, пока не получит финальный файл через `/user/importreport/download`.
+  - name: Users.Fields
+    description: |
+      ## Кастомные поля пользователей
+
+      **Назначение:** предоставлять актуальные метаданные профиля (customer attributes, achievements, tokens).
+      **Ключевые особенности:** простой список полей `/dictionary/user/fields`, возвращаемая схема `UserField`.
+      **Пример Use case:** мобильное приложение запрашивает доступные поля, чтобы показать динамическую форму регистрации с нужными полями и валидацией.
+
+paths:
+  # === Users.Operations ===
+
+  /user/user/index:
+    get:
+      tags: [Users.Operations]
+      summary: Получить список всех пользователей
+      description: Возвращает список всех пользователей с фильтрацией, сортировкой и пагинацией
+      parameters:
+        - $ref: './core/common/parameters.yaml#/components/parameters/Page'
+        - $ref: './core/common/parameters.yaml#/components/parameters/PerPage'
+        - $ref: './core/common/parameters.yaml#/components/parameters/Search'
+      responses:
+        '200':
+          $ref: './core/common/responses.yaml#/components/responses/UserList'
+        '400':
+          $ref: './core/common/responses.yaml#/components/responses/BadRequest'
+
+  /user/user/admin:
+    get:
+      tags: [Users.Operations]
+      summary: Получить список администраторов
+      description: Возвращает список всех пользователей с правами администратора
+      parameters:
+        - $ref: './core/common/parameters.yaml#/components/parameters/Page'
+        - $ref: './core/common/parameters.yaml#/components/parameters/PerPage'
+      responses:
+        '200':
+          $ref: './core/common/responses.yaml#/components/responses/UserList'
+        '400':
+          $ref: './core/common/responses.yaml#/components/responses/BadRequest'
+        '403':
+          $ref: './core/common/responses.yaml#/components/responses/Forbidden'
+
+  /user/user/view:
+    get:
+      tags: [Users.Operations]
+      summary: Получить детальную информацию о пользователе
+      description: Возвращает полную информацию о пользователе включая его группы, курсы и кастомные поля
+      parameters:
+        - $ref: './core/common/parameters.yaml#/components/parameters/Id'
+      responses:
+        '200':
+          description: Успешно получена информация о пользователе
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: './core/common/schemas.yaml#/components/schemas/User'
+        '404':
+          $ref: './core/common/responses.yaml#/components/responses/NotFound'
+
+  /dictionary/user/fields:
+    get:
+      tags: [Users.Fields]
+      summary: Получить список кастомных полей пользователя
+      description: Возвращает все доступные кастомные поля профилей пользователей
+      responses:
+        '200':
+          description: Успешно получен список кастомных полей
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/UserField'
+        '400':
+          $ref: './core/common/responses.yaml#/components/responses/BadRequest'
+        '403':
+          $ref: './core/common/responses.yaml#/components/responses/Forbidden'
+
+  /user/user/create:
+    post:
+      tags: [Users.Operations]
+      summary: Создать нового пользователя
+      description: |
+        Создает нового пользователя в системе с возможностью назначения роли.
+        Автоматически синхронизирует пользователя с LMS и отправляет уведомления.
+
+        **Валидация:**
+        - Email должен быть уникальным в системе
+        - Username обязателен, минимальная длина 2 символа, максимальная 255
+        - Роль должна существовать в системе (не из списка RESTRICTED_ROLES)
+        - Проверяется лимит пользователей тарифа
+
+        **Бизнес-логика:**
+        - При создании администратора отправляется email с паролем
+        - Для обычных пользователей также отправляется уведомление
+        - Автоматическая синхронизация с LMS через очередь
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+            examples:
+              basic_user:
+                summary: Создание обычного пользователя
+                value:
+                  username: "Иван Петров"
+                  email: "ivan.petrov@example.com"
+                  department: "IT отдел"
+                  position: "Разработчик"
+              admin_user:
+                summary: Создание администратора
+                value:
+                  username: "Мария Сидорова"
+                  email: "maria.sidorova@example.com"
+                  role: "admin"
+                  department: "HR"
+                  position: "HR менеджер"
+                  password: "SecurePassword123!"
+                  group_ids: [12, 34]
+                  course_ids: [501, 502]
+      responses:
+        '201':
+          description: Пользователь успешно создан
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/User'
+              examples:
+                user_created:
+                  summary: Пользователь создан
+                  value:
+                    success: true
+                    data:
+                      id: 123
+                      username: "Иван Петров"
+                      email: "ivan.petrov@example.com"
+                      role: "student"
+                      status: "active"
+                      department: "IT отдел"
+                      position: "Разработчик"
+                      created_at: "2025-01-15T10:30:00Z"
+        '400':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: './core/common/schemas.yaml#/components/schemas/ErrorResponse'
+              examples:
+                validation_error:
+                  summary: Ошибка валидации email
+                  value:
+                    success: false
+                    errors:
+                      email: ["Email адрес уже занят"]
+                user_limit_error:
+                  summary: Достигнут лимит пользователей
+                  value:
+                    success: false
+                    errors:
+                      username: ["New user registration is not available"]
+        '403':
+          description: Недостаточно прав для создания пользователя
+          content:
+            application/json:
+              schema:
+                $ref: './core/common/schemas.yaml#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                errors:
+                  permission: ["Insufficient permissions"]
+
+  /user/user/update:
+    put:
+      tags: [Users.Operations]
+      summary: Обновить данные пользователя
+      description: Обновляет информацию о существующем пользователе
+      parameters:
+        - $ref: './core/common/parameters.yaml#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 2
+                  description: Полное имя пользователя
+                password:
+                  type: string
+                  minLength: 6
+                  description: Новый пароль
+                role:
+                  type: string
+                  enum: [admin, editor, curator, student]
+                  description: Роль пользователя
+                status:
+                  type: string
+                  enum: [active, inactive, blocked]
+                  description: Статус пользователя
+                custom_fields:
+                  type: object
+                  description: Кастомные поля для обновления
+                group_ids:
+                  type: array
+                  description: Список идентификаторов групп для привязки
+                  items:
+                    type: integer
+                    minimum: 1
+                course_ids:
+                  type: array
+                  description: Список идентификаторов курсов для назначения
+                  items:
+                    type: integer
+                    minimum: 1
+      responses:
+        '200':
+          $ref: './core/common/responses.yaml#/components/responses/Success'
+        '400':
+          $ref: './core/common/responses.yaml#/components/responses/ValidationError'
+        '404':
+          $ref: './core/common/responses.yaml#/components/responses/NotFound'
+
+  /user/user/delete:
+    delete:
+      tags: [Users.Operations]
+      summary: Удалить пользователей
+      description: Удаляет одного или нескольких пользователей
+      parameters:
+        - $ref: './core/common/parameters.yaml#/components/parameters/Ids'
+      responses:
+        '200':
+          $ref: './core/common/responses.yaml#/components/responses/Success'
+        '400':
+          $ref: './core/common/responses.yaml#/components/responses/BadRequest'
+
+  /dictionary/user/statuses:
+    get:
+      tags: [Users.Operations]
+      summary: Получить расширенные статусы пользователей
+      description: Возвращает все возможные статусы пользователей в системе
+      responses:
+        '200':
+          description: Успешно получен список статусов пользователей
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/UserStatus'
+        '400':
+          $ref: './core/common/responses.yaml#/components/responses/BadRequest'
+        '403':
+          $ref: './core/common/responses.yaml#/components/responses/Forbidden'
+
+  # === Users.Courses ===
+
+  /user/user/add-course:
+    post:
+      tags: [Users.Courses]
+      summary: Назначить курсы пользователю
+      description: Добавляет доступ пользователя к указанным курсам
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_id, course_ids]
+              properties:
+                user_id:
+                  type: integer
+                  minimum: 1
+                  description: ID пользователя
+                course_ids:
+                  type: array
+                  items:
+                    type: integer
+                    minimum: 1
+                  description: Массив ID курсов для назначения
+      responses:
+        '200':
+          $ref: './core/common/responses.yaml#/components/responses/Success'
+        '400':
+          $ref: './core/common/responses.yaml#/components/responses/BadRequest'
+
+  /user/user/delete-course:
+    post:
+      tags: [Users.Courses]
+      summary: Отозвать доступ к курсам
+      description: Удаляет доступ пользователя к указанным курсам
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_id, course_ids]
+              properties:
+                user_id:
+                  type: integer
+                  minimum: 1
+                  description: ID пользователя
+                course_ids:
+                  type: array
+                  items:
+                    type: integer
+                    minimum: 1
+                  description: Массив ID курсов для отзыва доступа
+      responses:
+        '200':
+          $ref: './core/common/responses.yaml#/components/responses/Success'
+        '400':
+          $ref: './core/common/responses.yaml#/components/responses/BadRequest'
+
+  # === Users.Import ===
+
+  /user/user/preview:
+    post:
+      tags: [Users.Import]
+      summary: Предпросмотр импорта Excel-файла
+      description: Анализирует Excel файл и показывает preview данных для импорта
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Excel файл для импорта (.xlsx, .xls)
+      responses:
+        '200':
+          description: Успешно проанализирован файл
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                      total_rows:
+                        type: integer
+                      preview:
+                        type: array
+                        items:
+                          type: object
+                      errors:
+                        type: array
+                        items:
+                          type: string
+        '400':
+          $ref: './core/common/responses.yaml#/components/responses/BadRequest'
+
+  /user/user/load:
+    post:
+      tags: [Users.Import]
+      summary: Запустить импорт пользователей (асинхронно)
+      description: Запускает фоновый процесс импорта пользователей из Excel файла
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Excel файл для импорта
+                update_existing:
+                  type: boolean
+                  default: false
+                  description: Обновлять существующих пользователей
+                default_role:
+                  type: string
+                  enum: [admin, editor, curator, student]
+                  default: student
+                  description: Роль по умолчанию для новых пользователей
+      responses:
+        '200':
+          description: Импорт успешно запущен
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: './core/common/schemas.yaml#/components/schemas/ImportStatus'
+        '400':
+          $ref: './core/common/responses.yaml#/components/responses/BadRequest'
+
+  /user/user/get-import-progress:
+    get:
+      tags: [Users.Import]
+      summary: Получить статус текущего импорта
+      description: Возвращает текущий статус и прогресс импорта пользователей
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: ID импорта (из ответа метода load)
+      responses:
+        '200':
+          description: Успешно получен статус импорта
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: './core/common/schemas.yaml#/components/schemas/ImportStatus'
+        '400':
+          $ref: './core/common/responses.yaml#/components/responses/BadRequest'
+        '404':
+          $ref: './core/common/responses.yaml#/components/responses/NotFound'
+
+  /user/user/load-template:
+    get:
+      tags: [Users.Import]
+      summary: Скачать шаблон Excel для импорта
+      description: Возвращает Excel файл с шаблоном для импорта пользователей
+      responses:
+        '200':
+          description: Успешно скачан файл шаблона
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: './core/common/responses.yaml#/components/responses/BadRequest'
+        '404':
+          $ref: './core/common/responses.yaml#/components/responses/NotFound'
+
+  # === Отчёты об импорте ===
+
+  /user/import-report/index:
+    get:
+      tags: [Users.Import]
+      summary: Получить список завершённых отчётов импорта
+      description: Возвращает список всех завершенных отчётов импорта пользователей
+      parameters:
+        - $ref: './core/common/parameters.yaml#/components/parameters/Page'
+        - $ref: './core/common/parameters.yaml#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Успешно получен список отчётов импорта
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            filename:
+                              type: string
+                            status:
+                              type: string
+                            created_at:
+                              type: string
+                            completed_at:
+                              type: string
+        '400':
+          $ref: './core/common/responses.yaml#/components/responses/BadRequest'
+
+  /user/importreport/download:
+    get:
+      tags: [Users.Import]
+      summary: Скачать XLSX с результатами импорта
+      description: Возвращает Excel файл с детальными результатами импорта
+      parameters:
+        - $ref: './core/common/parameters.yaml#/components/parameters/Id'
+      responses:
+        '200':
+          description: Успешно скачан файл отчёта импорта
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+        '404':
+          $ref: './core/common/responses.yaml#/components/responses/NotFound'
+
+# ========================================
+# Компоненты для Users модуля
+# ========================================
+components:
+  schemas:
+    # Request схемы
+    CreateUserRequest:
+      type: object
+      required:
+        - username
+        - email
+      properties:
+        username:
+          type: string
+          minLength: 2
+          maxLength: 255
+          description: |
+            Имя пользователя. Обязательное поле.
+            - Минимум 2 символа
+            - Максимум 255 символов
+            - Trim automatically applied
+          example: "Иван Петров"
+        email:
+          type: string
+          format: email
+          description: |
+            Email пользователя. Должен быть уникальным в системе.
+            - Trim automatically applied
+            - Valid email format required
+          example: "ivan.petrov@example.com"
+        password:
+          type: string
+          description: |
+            Пароль пользователя. Если не указан, генерируется автоматически.
+            - Для существующих сотрудников не требуется
+            - Для новых пользователей рекомендуется задавать
+          example: "SecurePassword123!"
+        role:
+          type: string
+          description: |
+            Роль пользователя в системе. По умолчанию 'user'.
+            - Не может быть из списка RESTRICTED_ROLES
+            - Доступные роли: superadmin, admin, editor, curator, student
+          example: "student"
+          enum: [superadmin, admin, editor, curator, student]
+        department:
+          type: string
+          description: |
+            Отдел пользователя. Синхронизируется с LMS.
+          example: "IT отдел"
+        position:
+          type: string
+          description: |
+            Должность пользователя. Синхронизируется с LMS.
+          example: "Разработчик"
+        phone:
+          type: string
+          description: |
+            Телефон пользователя
+          example: "+7 (999) 123-45-67"
+        custom_fields:
+          type: object
+          description: |
+            Дополнительные поля пользователя (custom fields)
+            Ключи - это имена полей, значения - данные
+          example:
+            city: "Москва"
+            experience: "5 лет"
+            skills: ["PHP", "JavaScript", "MySQL"]
+        group_ids:
+          type: array
+          description: Список идентификаторов групп, к которым добавляется пользователь
+          items:
+            type: integer
+            minimum: 1
+          example: [12, 34]
+        course_ids:
+          type: array
+          description: Список идентификаторов курсов для назначения
+          items:
+            type: integer
+            minimum: 1
+          example: [501, 502]
+
+    # Response схемы
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Уникальный идентификатор пользователя
+          example: 123
+        username:
+          type: string
+          description: Имя пользователя
+          example: "Иван Петров"
+        email:
+          type: string
+          format: email
+          description: Email пользователя
+          example: "ivan.petrov@example.com"
+        role:
+          type: string
+          description: Роль пользователя
+          example: "student"
+        status:
+          type: string
+          description: Статус пользователя
+          enum: [active, inactive, blocked]
+          example: "active"
+        department:
+          type: string
+          description: Отдел
+          example: "IT отдел"
+        position:
+          type: string
+          description: Должность
+          example: "Разработчик"
+        phone:
+          type: string
+          description: Телефон
+          example: "+7 (999) 123-45-67"
+        photo:
+          type: string
+          format: uri
+          description: URL фотографии пользователя (S3)
+          example: "https://s3.amazonaws.com/bucket/users/photos/123.jpg"
+        created_at:
+          type: string
+          format: date-time
+          description: Дата создания пользователя
+          example: "2025-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Дата последнего обновления
+          example: "2025-01-15T10:30:00Z"
+        last_login_at:
+          type: string
+          format: date-time
+          description: Дата последнего входа
+          example: "2025-01-16T09:15:00Z"
+        email_verified:
+          type: boolean
+          description: Подтвержден ли email
+          example: true
+        custom_fields:
+          type: object
+          description: Дополнительные поля пользователя
+          example:
+            city: "Москва"
+            experience: "5 лет"
+
+    UserList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+          description: Массив пользователей
+        meta:
+          $ref: './core/common/schemas.yaml#/components/schemas/PaginationMeta'
+
+    # Специализированные схемы
+    UserImportStatus:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID задачи импорта
+          example: 456
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+          description: Статус обработки
+          example: "processing"
+        progress:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Прогресс выполнения в процентах
+          example: 75
+        total_rows:
+          type: integer
+          description: Всего строк в файле
+          example: 150
+        processed_rows:
+          type: integer
+          description: Обработано строк
+          example: 112
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              row:
+                type: integer
+                description: Номер строки с ошибкой
+              field:
+                type: string
+                description: Поле с ошибкой
+              message:
+                type: string
+                description: Описание ошибки
+          description: Массив ошибок валидации
+        created_at:
+          type: string
+          format: date-time
+          description: Время создания задачи
+        completed_at:
+          type: string
+          format: date-time
+          description: Время завершения задачи
+
+    UserField:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID поля
+          example: 789
+        name:
+          type: string
+          description: Имя поля (system name)
+          example: "experience_years"
+        label:
+          type: string
+          description: Отображаемое название поля
+          example: "Опыт работы (лет)"
+        type:
+          type: string
+          enum: [string, number, date, boolean, select]
+          description: Тип поля
+          example: "number"
+        required:
+          type: boolean
+          description: Обязательное ли поле
+          example: false
+        enabled:
+          type: boolean
+          description: Активно ли поле
+          example: true
+        validation_rules:
+          type: object
+          description: Правила валидации
+          example:
+            min: 0
+            max: 50
+        options:
+          type: array
+          items:
+            type: string
+          description: Варианты для select полей
+          example: ["0-1", "2-5", "6-10", "10+"]
+    UserStatus:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Системный код статуса
+          example: active
+        name:
+          type: string
+          description: Отображаемое название статуса
+          example: Активный
+        description:
+          type: string
+          description: Расширенное описание статуса
+          example: Пользователь с активной учётной записью
+        category:
+          type: string
+          description: Группа статусов (например, access, pending, blocked)
+          example: access
+        color:
+          type: string
+          description: Цветовой код статуса (hex)
+          example: "#2ea44f"
+        is_default:
+          type: boolean
+          description: Является ли статус статусом по умолчанию при создании
+          example: true
+      example:
+        id: active
+        name: Активный
+        description: Пользователь с полной активной учётной записью
+        category: access
+        color: "#2ea44f"
+        is_default: true

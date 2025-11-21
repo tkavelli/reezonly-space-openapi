@@ -1,0 +1,3 @@
+apis:
+  space:
+    root: ./space-platform-api.yaml

@@ -1,0 +1,165 @@
+# Common Responses for Reezonly Space API
+components:
+  responses:
+    # Success responses
+    Success:
+      description: Успешное выполнение операции
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: './schemas.yaml#/components/schemas/SuccessResponse'
+              - type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Operation completed successfully"
+
+    Created:
+      description: Ресурс успешно создан
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: './schemas.yaml#/components/schemas/SuccessResponse'
+              - type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Resource created successfully"
+
+    # Success responses with specific data
+    UserList:
+      description: Список пользователей успешно получен
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: './schemas.yaml#/components/schemas/SuccessResponse'
+              - type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: './schemas.yaml#/components/schemas/User'
+
+    GroupList:
+      description: Список групп успешно получен
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: './schemas.yaml#/components/schemas/SuccessResponse'
+              - type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: './schemas.yaml#/components/schemas/Group'
+
+    CertificateList:
+      description: Список сертификатов успешно получен
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: './schemas.yaml#/components/schemas/SuccessResponse'
+              - type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: './schemas.yaml#/components/schemas/Certificate'
+
+    # Error responses
+    BadRequest:
+      description: Ошибка в запросе (неверные параметры)
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            errors:
+              email:
+                - "Некорректный email"
+              page:
+                - "page must be >= 1"
+
+    Unauthorized:
+      description: Ошибка аутентификации (отсутствует или неверный API ключ)
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            errors:
+              api_key:
+                - "Неверный или отсутствующий X-API-Key"
+
+    Forbidden:
+      description: Доступ запрещен (недостаточно прав)
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            errors:
+              access:
+                - "Недостаточно прав для выполнения операции"
+
+    NotFound:
+      description: Ресурс не найден
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            errors:
+              id:
+                - "Ресурс не найден"
+
+    ValidationError:
+      description: Ошибка валидации данных
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            errors:
+              password:
+                - "Password must be at least 6 characters"
+
+    InternalError:
+      description: Внутренняя ошибка сервера
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            errors:
+              server:
+                - "Internal server error. Try again later"
+
+    TooManyRequests:
+      description: Превышен лимит запросов
+      headers:
+        Retry-After:
+          description: Через сколько секунд можно повторить запрос
+          schema:
+            type: integer
+            example: 30
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            errors:
+              rate_limit:
+                - "Превышен лимит запросов. Повторите через 30 секунд"

@@ -1,0 +1,1198 @@
+# Groups Management API - 12 методов
+# Полностью детализированная спецификация на основе реального кода Space
+
+openapi: 3.1.0
+info:
+  title: Groups Management API
+  version: 1.0.0
+  description: |
+    ## Group Management — 12 методов
+
+    Управление структурой групп и участниками.
+
+tags:
+  - name: Groups.Structure
+    description: |
+      ## Структура и иерархия групп
+
+      **Назначение:** выстроить иерархию корпоративных групп с поддержкой вложенности, фильтрации и синхронизации с продуктами/ролями.
+      **Ключевые особенности:**
+      - Родительские связи, проверка циклов, фильтры по статусу/group type и `PaginationMeta`.
+      - Используются схемы `Group`, `GroupListItem` и стандартные ответы на ошибки.
+      **Пример Use case:** интегратор CRM подстраивает дерево отделов: получает групповой каталог, создаёт новый подраздел с `POST /v1/group/group/create`, затем проверяет структуру через `/v1/group/group/view`.
+
+  - name: Groups.Members
+    description: |
+      ## Управление участниками групп
+
+      **Назначение:** массово добавлять/удалять пользователей и назначать курсы для групп на стороне интеграции.
+      **Ключевые особенности:** простые payload’ы (`user_id`, `course_ids`, списки `ids[]`), поддержка экспорта, `assign-courses` для курсов, `DELETE /multiple-delete`.
+      **Пример Use case:** HR переносит 50 сотрудников между группами, одновременно обновляя назначенные курсы через `POST /group/group/assign-courses`, а затем скачивает экспорт структуры (`/group/group/export`).
+
+paths:
+  # === Groups.Structure Methods ===
+
+  /v1/group/group/index:
+    post:
+      tags: [Groups.Structure]
+      summary: Получить список групп с пагинацией и фильтрацией
+      description: |
+        Возвращает список групп с поддержкой пагинации, поиска и иерархической фильтрации.
+        Можно фильтровать по родительской группе, искать по названию и описанию.
+        Поддерживает сортировку по количеству пользователей и дате обновления.
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: integer
+                  minimum: 1
+                  default: 1
+                  description: Номер страницы
+                per_page:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                  default: 20
+                  description: Элементов на странице
+                parent_id:
+                  oneOf:
+                    - type: integer
+                      minimum: 1
+                    - type: 'null'
+                  description: |
+                    Фильтр по родительской группе:
+                    - `null` - только корневые группы
+                    - `int` - группы внутри указанного родителя
+                    - не указан - все группы
+                search:
+                  type: string
+                  maxLength: 255
+                  description: Поиск по названию или описанию группы
+                sort:
+                  type: string
+                  enum: [name, user_count, created_at, updated_at]
+                  default: name
+                  description: Поле сортировки
+                order:
+                  type: string
+                  enum: [asc, desc]
+                  default: asc
+                  description: Направление сортировки
+                include_default:
+                  type: boolean
+                  default: false
+                  description: |
+                    Включить системные группы по умолчанию:
+                    - `false` - только пользовательские группы
+                    - `true` - все группы включая системные
+
+      responses:
+        '200':
+          description: Успешный ответ с отфильтрованным списком групп
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/GroupListItem'
+                      meta:
+                        $ref: './core/common/schemas.yaml#/components/schemas/PaginationMeta'
+              examples:
+                groups_list:
+                  summary: Список групп с пагинацией
+                  value:
+                    success: true
+                    data:
+                      - id: 1
+                        name: "IT Department"
+                        comment: "Разработка и поддержка IT систем"
+                        hierarchyPathString: "IT Department"
+                        userCount: 25
+                        type: 2
+                        image: "https://s3.reezonly.com/groups/it-dept.jpg"
+                        created_at: "2023-08-25T14:15:43Z"
+                        updated_at: "2023-08-25T14:15:43Z"
+                      - id: 2
+                        name: "Development Team"
+                        comment: "Frontend и backend разработка"
+                        hierarchyPathString: "IT Department / Development Team"
+                        userCount: 15
+                        type: 2
+                        parent_id: 1
+                        image: null
+                        created_at: "2023-08-25T15:20:10Z"
+                        updated_at: "2023-08-25T15:20:10Z"
+                    meta:
+                      page: 1
+                      per_page: 20
+                      total: 2
+
+        '400':
+          $ref: './core/common/responses.yaml#/components/responses/ValidationError'
+        '403':
+          $ref: './core/common/responses.yaml#/components/responses/Forbidden'
+
+  /v1/group/group/view:
+    get:
+      tags: [Groups.Structure]
+      summary: Получить детальную информацию о группе
+      description: |
+        Возвращает полную информацию о группе включая всех участников,
+        дочерние группы и правила доступа. Используется для детального просмотра
+        группы в административном интерфейсе.
+
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: ID группы
+        - name: include_users
+          in: query
+          schema:
+            type: boolean
+            default: true
+          description: Включить список пользователей группы
+        - name: include_children
+          in: query
+          schema:
+            type: boolean
+            default: true
+          description: Включить дочерние группы
+        - name: users_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Страница пользователей (при include_users=true)
+
+      responses:
+        '200':
+          description: Детальная информация о группе
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/GroupDetail'
+
+              examples:
+                group_detail:
+                  summary: Детальная информация о группе
+                  value:
+                    success: true
+                    data:
+                      id: 1
+                      name: "IT Department"
+                      comment: "Разработка и поддержка IT систем"
+                      hierarchyPathString: "IT Department"
+                      userCount: 25
+                      type: 2
+                      image: "https://s3.reezonly.com/groups/it-dept.jpg"
+                      parent_id: null
+                      created_at: "2023-08-25T14:15:43Z"
+                      updated_at: "2023-08-25T14:15:43Z"
+                      users:
+                        - id: 101
+                          username: "john.doe"
+                          email: "john.doe@company.com"
+                          role: "admin"
+                          created_at: "2023-08-25T14:20:00Z"
+                        - id: 102
+                          username: "jane.smith"
+                          email: "jane.smith@company.com"
+                          role: "editor"
+                          created_at: "2023-08-25T14:25:00Z"
+                      children:
+                        - id: 2
+                          name: "Development Team"
+                          userCount: 15
+                          hierarchyPathString: "IT Department / Development Team"
+                      rules: []
+
+        '404':
+          description: Группа не найдена
+          content:
+            application/json:
+              schema:
+                $ref: './core/common/schemas.yaml#/components/schemas/ErrorResponse'
+              examples:
+                group_not_found:
+                  summary: Группа не найдена
+                  value:
+                    success: false
+                    errors:
+                      id: ["Group not found"]
+
+  /v1/group/group/create:
+    post:
+      tags: [Groups.Structure]
+      summary: Создать новую группу
+      description: |
+        Создает новую группу пользователей с поддержкой иерархии.
+        Автоматически валидирует структуру иерархии, предотвращая циклические зависимости.
+        Поддерживает загрузку изображения группы и опциональное добавление пользователей.
+
+        **Бизнес-логика:**
+        - Проверка уникальности названия в рамках родительской группы
+        - Валидация иерархии (предотвращение циклов)
+        - Автоматическое построение иерархического пути
+        - Загрузка изображения в S3 хранилище
+        - Логирование действия в ActionLog
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGroupRequest'
+
+            examples:
+              root_group:
+                summary: Создание корневой группы
+                value:
+                  name: "Marketing Department"
+                  comment: "Маркетинг и продвижение продуктов"
+                  parent_id: null
+                  user_ids: [101, 102, 103]
+
+              child_group:
+                summary: Создание дочерней группы
+                value:
+                  name: "Content Marketing"
+                  comment: "Создание контента и SEO"
+                  parent_id: 5
+                  user_ids: [201, 202]
+
+      responses:
+        '201':
+          description: Группа успешно создана
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Group'
+
+              examples:
+                group_created:
+                  summary: Группа создана
+                  value:
+                    success: true
+                    data:
+                      id: 15
+                      name: "Marketing Department"
+                      comment: "Маркетинг и продвижение продуктов"
+                      hierarchyPathString: "Marketing Department"
+                      userCount: 3
+                      type: 2
+                      parent_id: null
+                      image: null
+                      created_at: "2023-11-19T10:30:00Z"
+                      updated_at: "2023-11-19T10:30:00Z"
+
+        '400':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: './core/common/schemas.yaml#/components/schemas/ErrorResponse'
+              examples:
+                validation_error:
+                  summary: Ошибка валидации
+                  value:
+                    success: false
+                    errors:
+                      name: ["Group name is required"]
+                      parent_id: ["Parent group not found"]
+
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: './core/common/schemas.yaml#/components/schemas/ErrorResponse'
+
+  /v1/group/group/update:
+    put:
+      tags: [Groups.Structure]
+      summary: Обновить информацию о группе
+      description: |
+        Обновляет базовую информацию о группе: название, описание, родительскую группу.
+        При изменении parent_id автоматически перестраивается иерархический путь
+        для всех дочерних групп.
+
+        **Важно:** Изменение родительской группы затрагивает всю ветку дочерних групп.
+
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: ID группы для обновления
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 2
+                  maxLength: 255
+                  description: Новое название группы
+                comment:
+                  type: string
+                  maxLength: 512
+                  description: Новое описание группы
+                parent_id:
+                  oneOf:
+                    - type: integer
+                      minimum: 1
+                    - type: 'null'
+                  description: |
+                    Новый родитель группы:
+                    - `null` - сделать корневой группой
+                    - `int` - переместить в другого родителя
+                    - отсутствие поля - оставить текущего родителя
+
+              example:
+                name: "Updated Marketing Department"
+                comment: "Обновленный комментарий отдела маркетинга"
+                parent_id: 3
+
+      responses:
+        '200':
+          description: Группа успешно обновлена
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Group'
+
+        '400':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: './core/common/schemas.yaml#/components/schemas/ErrorResponse'
+              examples:
+                hierarchy_error:
+                  summary: Ошибка иерархии
+                  value:
+                    success: false
+                    errors:
+                      parent_id: ["Cannot move group to its own child"]
+
+        '404':
+          description: Группа не найдена
+          content:
+            application/json:
+              schema:
+                $ref: './core/common/schemas.yaml#/components/schemas/ErrorResponse'
+
+  /v1/group/group/delete:
+    delete:
+      tags: [Groups.Structure]
+      summary: Удалить группу
+      description: |
+        Удаляет группу и все связанные данные:
+        - Связи пользователей с группой
+        - Правила доступа группы
+        - Логирование действия
+
+        **Важно:** Нельзя удалить группу, у которой есть дочерние группы.
+        Сначала нужно удалить или переместить все дочерние группы.
+
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: ID группы для удаления
+
+      responses:
+        '200':
+          description: Группа успешно удалена
+          content:
+            application/json:
+              schema:
+                $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
+              examples:
+                success:
+                  value:
+                    success: true
+                    message: "Group deleted successfully"
+
+        '400':
+          description: Нельзя удалить группу
+          content:
+            application/json:
+              schema:
+                $ref: './core/common/schemas.yaml#/components/schemas/ErrorResponse'
+              examples:
+                has_children:
+                  summary: Есть дочерние группы
+                  value:
+                    success: false
+                    errors:
+                      id: ["Cannot delete group with child groups"]
+
+        '404':
+          description: Группа не найдена
+          content:
+            application/json:
+              schema:
+                $ref: './core/common/schemas.yaml#/components/schemas/ErrorResponse'
+
+  /v1/group/group/multiple-delete:
+    delete:
+      tags: [Groups.Structure]
+      summary: Массовое удаление групп
+      description: |
+        Удаляет несколько групп за один запрос. Каждая группа проверяется
+        на отсутствие дочерних групп перед удалением.
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [groupIds]
+              properties:
+                groupIds:
+                  type: array
+                  items:
+                    type: integer
+                    minimum: 1
+                  maxItems: 50
+                  description: Массив ID групп для удаления (максимум 50)
+
+              example:
+                groupIds: [10, 11, 12]
+
+      responses:
+        '200':
+          description: Результат массового удаления
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          deleted:
+                            type: array
+                            items:
+                              type: integer
+                            description: ID успешно удаленных групп
+                          errors:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                error:
+                                  type: string
+                            description: Ошибки удаления
+
+  /dictionary/user/groups:
+    get:
+      tags: [Groups.Structure]
+      summary: Получить иерархию всех групп
+      description: |
+        Возвращает полный список групп с иерархической структурой для выпадающих списков
+        и древовидных компонентов интерфейса.
+
+      parameters:
+        - name: show_default
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Показать группы по умолчанию (гостевые, авторизованные)
+
+      responses:
+        '200':
+          description: Иерархический список групп
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/GroupHierarchyItem'
+
+  # === Groups.Members Methods ===
+
+  /v1/group/group/user-add:
+    post:
+      tags: [Groups.Members]
+      summary: Добавить пользователей в группы
+      description: |
+        Добавляет пользователей в одну или несколько групп.
+        Поддерживает пакетную обработку до 100 пользователей.
+        Проверяет дубликаты и автоматически пропускает уже добавленных пользователей.
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserGroupOperationRequest'
+
+            examples:
+              single_group:
+                summary: Добавление в одну группу
+                value:
+                  id: 5
+                  userIds: [101, 102, 103, 104, 105]
+
+              multiple_groups:
+                summary: Добавление в несколько групп
+                value:
+                  userIds: [201, 202, 203]
+                  groupIds: [10, 11, 12]
+
+      responses:
+        '200':
+          description: Пользователи успешно добавлены
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          added_count:
+                            type: integer
+                            description: Количество добавленных пользователей
+                          skipped_count:
+                            type: integer
+                            description: Количество пропущенных (уже были в группах)
+
+        '400':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: './core/common/schemas.yaml#/components/schemas/ErrorResponse'
+              examples:
+                limit_exceeded:
+                  summary: Превышен лимит
+                  value:
+                    success: false
+                    errors:
+                      userIds: ["Maximum 100 users per request"]
+
+  /v1/group/group/user-delete:
+    post:
+      tags: [Groups.Members]
+      summary: Удалить пользователей из групп
+      description: |
+        Удаляет пользователей из указанных групп.
+        Автоматически обрабатывает ситуации, когда пользователя нет в группе.
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserGroupOperationRequest'
+
+      responses:
+        '200':
+          description: Пользователи успешно удалены
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          removed_count:
+                            type: integer
+                            description: Количество удаленных пользователей
+
+  /v1/group/group/user-list:
+    get:
+      tags: [Groups.Members]
+      summary: Получить список пользователей группы
+      description: |
+        Возвращает список пользователей указанной группы с пагинацией и поиском.
+        Можно фильтровать по роли и статусу активности.
+
+      parameters:
+        - name: group_id
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: ID группы
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Номер страницы
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Элементов на странице
+        - name: search
+          in: query
+          schema:
+            type: string
+            maxLength: 255
+          description: Поиск по username или email
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [superadmin, admin, editor, curator, student]
+          description: Фильтр по роли
+
+      responses:
+        '200':
+          description: Список пользователей группы
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: './core/common/schemas.yaml#/components/schemas/User'
+                      meta:
+                        $ref: './core/common/schemas.yaml#/components/schemas/PaginationMeta'
+
+        '404':
+          description: Группа не найдена
+          content:
+            application/json:
+              schema:
+                $ref: './core/common/schemas.yaml#/components/schemas/ErrorResponse'
+
+  # === Export ===
+
+  /v1/group/group/export:
+    post:
+      tags: [Groups.Structure]
+      summary: Запустить экспорт структуры групп
+      description: |
+        Создаёт задачу экспорта групп по указанным фильтрам. Возвращает идентификатор экспорта и ссылку для скачивания после формирования.
+
+        **Назначение:** выгрузка дерева групп для сверки с внешней HR/CRM и последующего импорта/миграции.
+
+        **Пример Use case:** HR переносит сотрудников между группами, обновляет курсы через `assign-courses`, а затем скачивает актуальный экспорт структуры, чтобы сверить дерево отделов с HRM.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: Фильтры экспорта (аналог фильтров списка групп).
+      responses:
+        '200':
+          description: Экспорт поставлен в очередь
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          export_id:
+                            type: integer
+                            example: 102
+                          download_url:
+                            type: string
+                            format: uri
+                            example: https://space.example.com/export/102.xlsx
+        '500':
+          $ref: './core/common/responses.yaml#/components/responses/InternalError'
+
+  /v1/group/group/export-download:
+    get:
+      tags: [Groups.Structure]
+      summary: Скачать сформированный экспорт групп
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: ID задания экспорта
+      responses:
+        '200':
+          description: Экспорт готов
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '404':
+          $ref: './core/common/responses.yaml#/components/responses/NotFound'
+  /v1/group/group/members-count:
+    get:
+      tags: [Groups.Members]
+      summary: Получить статистику участников группы
+      description: |
+        Возвращает количество участников группы с разбивкой по статусам активности.
+        Используется для отображения статистики в административном интерфейсе.
+
+      parameters:
+        - name: group_id
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: ID группы
+        - name: include_subgroups
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Учитывать пользователей из дочерних групп
+
+      responses:
+        '200':
+          description: Статистика участников
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/GroupMemberStats'
+
+  /v1/group/group/assign-courses:
+    post:
+      tags: [Groups.Members]
+      summary: Назначить курсы всем участникам группы
+      description: |
+        Назначает указанные курсы всем текущим участникам группы.
+        Операция выполняется асинхронно через очередь для больших групп.
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [groupIds, courseIds]
+              properties:
+                groupIds:
+                  type: array
+                  items:
+                    type: integer
+                    minimum: 1
+                  maxItems: 10
+                  description: Массив ID групп (максимум 10)
+                courseIds:
+                  type: array
+                  items:
+                    type: integer
+                    minimum: 1
+                  maxItems: 50
+                  description: Массив ID курсов для назначения (максимум 50)
+
+              example:
+                groupIds: [5, 6, 7]
+                courseIds: [101, 102, 103]
+
+      responses:
+        '200':
+          description: Курсы успешно назначены
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          job_id:
+                            type: string
+                            description: ID фонового задания для отслеживания
+                          assigned_users:
+                            type: integer
+                            description: Количество пользователей, которым назначены курсы
+
+  /v1/group/group/rule-add:
+    post:
+      tags: [Groups.Members]
+      summary: Добавить правила доступа для групп
+      description: |
+        Создает правила доступа для групп на различные объекты системы
+        (курсы, страницы, файлы). Поддерживает вложенные группы.
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type, objectId, groupIds]
+              properties:
+                type:
+                  type: integer
+                  minimum: 1
+                  maximum: 10
+                  description: Тип правила (1=курс, 2=страница, 3=файл)
+                objectId:
+                  type: integer
+                  minimum: 1
+                  description: ID объекта для правила
+                groupIds:
+                  type: array
+                  items:
+                    type: integer
+                    minimum: 1
+                  description: Массив ID групп
+                includeSubgroupIds:
+                  type: array
+                  items:
+                    type: integer
+                    minimum: 1
+                  description: Массив ID групп, которые включают подгруппы
+
+      responses:
+        '200':
+          description: Правила успешно добавлены
+          content:
+            application/json:
+              schema:
+                $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
+
+  /v1/group/group/rule-delete:
+    delete:
+      tags: [Groups.Members]
+      summary: Удалить правила доступа
+      description: Удаляет правила доступа для указанных групп и объектов
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type, objectId, groupIds]
+              properties:
+                type:
+                  type: integer
+                  minimum: 1
+                  description: Тип правила
+                objectId:
+                  type: integer
+                  minimum: 1
+                  description: ID объекта
+                groupIds:
+                  type: array
+                  items:
+                    type: integer
+                    minimum: 1
+                  description: Массив ID групп
+
+      responses:
+        '200':
+          description: Правила успешно удалены
+          content:
+            application/json:
+              schema:
+                $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
+
+components:
+  schemas:
+    Group:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Уникальный идентификатор группы
+          example: 1
+        name:
+          type: string
+          description: Название группы
+          example: "IT Department"
+        comment:
+          type: string
+          description: Описание группы
+          example: "Разработка и поддержка IT систем"
+        hierarchyPathString:
+          type: string
+          description: Полный иерархический путь группы
+          example: "Company / IT Department / Development Team"
+        userCount:
+          type: integer
+          description: Количество пользователей в группе
+          example: 25
+        type:
+          type: integer
+          description: Тип группы (1=гостевая, 2=авторизованных, 9=по умолчанию)
+          example: 2
+        parent_id:
+          oneOf:
+            - type: integer
+              minimum: 1
+            - type: 'null'
+          description: ID родительской группы
+          example: null
+        image:
+          oneOf:
+            - type: string
+              format: uri
+            - type: 'null'
+          description: URL изображения группы
+          example: "https://s3.reezonly.com/groups/it-dept.jpg"
+        created_at:
+          type: string
+          format: date-time
+          description: Дата создания
+          example: "2023-08-25T14:15:43Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Дата обновления
+          example: "2023-08-25T14:15:43Z"
+
+    GroupListItem:
+      allOf:
+        - $ref: '#/components/schemas/Group'
+        - type: object
+          properties:
+            parent:
+              type: object
+              description: Информация о родительской группе
+              properties:
+                id:
+                  type: integer
+                name:
+                  type: string
+              nullable: true
+
+    GroupDetail:
+      allOf:
+        - $ref: '#/components/schemas/Group'
+        - type: object
+          properties:
+            users:
+              type: array
+              description: Список пользователей группы
+              items:
+                allOf:
+                  - $ref: './core/common/schemas.yaml#/components/schemas/User'
+                  - type: object
+                    properties:
+                      role_in_group:
+                        type: string
+                        description: Роль пользователя в группе
+                      joined_at:
+                        type: string
+                        format: date-time
+                        description: Дата добавления в группу
+            children:
+              type: array
+              description: Дочерние группы
+              items:
+                $ref: '#/components/schemas/GroupListItem'
+            rules:
+              type: array
+              description: Правила доступа группы
+              items:
+                type: object
+                properties:
+                  type:
+                    type: integer
+                  objectId:
+                    type: integer
+                  objectType:
+                    type: string
+
+    GroupHierarchyItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID группы
+        name:
+          type: string
+          description: Название группы
+        parent_id:
+          oneOf:
+            - type: integer
+            - type: 'null'
+          description: ID родительской группы
+        level:
+          type: integer
+          description: Уровень вложенности (0=корневой)
+          example: 0
+        has_children:
+          type: boolean
+          description: Наличие дочерних групп
+          example: true
+        userCount:
+          type: integer
+          description: Количество пользователей
+          example: 15
+
+    CreateGroupRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 255
+          description: Название группы (обязательное поле)
+          example: "Marketing Department"
+        comment:
+          type: string
+          maxLength: 512
+          description: Описание группы (опционально)
+          example: "Отдел маркетинга и продвижения"
+        parent_id:
+          oneOf:
+            - type: integer
+              minimum: 1
+            - type: 'null'
+          description: |
+            ID родительской группы:
+            - `null` для корневой группы
+            - ID существующей группы для дочерней
+          example: null
+        user_ids:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          maxItems: 100
+          description: Массив ID пользователей для добавления в группу (максимум 100)
+          example: [101, 102, 103]
+        image_upload:
+          type: string
+          format: binary
+          description: Файл изображения группы (через multipart/form-data)
+
+    UserGroupOperationRequest:
+      oneOf:
+        - type: object
+          description: Операция с одной группой
+          required: [id, userIds]
+          properties:
+            id:
+              type: integer
+              minimum: 1
+              description: ID группы
+            userIds:
+              type: array
+              items:
+                type: integer
+                minimum: 1
+              maxItems: 100
+              description: Массив ID пользователей (максимум 100)
+        - type: object
+          description: Операция с несколькими группами
+          required: [userIds, groupIds]
+          properties:
+            userIds:
+              type: array
+              items:
+                type: integer
+                minimum: 1
+              maxItems: 100
+              description: Массив ID пользователей (максимум 100)
+            groupIds:
+              type: array
+              items:
+                type: integer
+                minimum: 1
+              maxItems: 10
+              description: Массив ID групп (максимум 10)
+
+    GroupMemberStats:
+      type: object
+      properties:
+        count:
+          type: integer
+          description: Общее количество участников
+          example: 25
+        active_count:
+          type: integer
+          description: Количество активных участников
+          example: 22
+        inactive_count:
+          type: integer
+          description: Количество неактивных участников
+          example: 3
+        subgroup_users:
+          type: integer
+          description: Количество пользователей из дочерних групп (если include_subgroups=true)
+          example: 15
+        last_updated:
+          type: string
+          format: date-time
+          description: Время последнего обновления статистики
+          example: "2023-11-19T10:30:00Z"

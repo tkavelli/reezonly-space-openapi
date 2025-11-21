@@ -1,0 +1,28 @@
+{
+  "name": "reezonly-openapi-builder",
+  "version": "1.0.0",
+  "description": "OpenAPI specification builder for Reezonly Space Platform",
+  "main": "build.js",
+  "scripts": {
+    "build": "node build.js",
+    "validate": "node validate.js",
+    "dev": "npm run build && npm run validate",
+    "lint": "node validate-single.js ../bundles/complete-api.yaml"
+  },
+  "dependencies": {
+    "@apidevtools/swagger-parser": "^10.1.0",
+    "js-yaml": "^4.1.0",
+    "fs-extra": "^11.1.1"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "openapi",
+    "swagger",
+    "api",
+    "documentation",
+    "reezonly",
+    "space-platform"
+  ],
+  "author": "Reezonly",
+  "license": "UNLICENSED"
+}
