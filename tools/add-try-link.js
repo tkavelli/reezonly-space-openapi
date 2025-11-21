@@ -2,6 +2,16 @@ const fs = require('fs');
 const path = require('path');
 
 const indexPath = path.join(__dirname, '../docs/index.html');
+const specPath = path.join(__dirname, '../space-platform-api.yaml');
+const docsSpecPath = path.join(__dirname, '../docs/space-platform-api.yaml');
+
+// Copy spec file to docs
+if (fs.existsSync(specPath)) {
+    fs.copyFileSync(specPath, docsSpecPath);
+    console.log('✅ Copied space-platform-api.yaml to docs/');
+} else {
+    console.warn('⚠️ space-platform-api.yaml not found in root');
+}
 
 if (!fs.existsSync(indexPath)) {
     console.warn('⚠️ docs/index.html not found, skipping try-link addition');
