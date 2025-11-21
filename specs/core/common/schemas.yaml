@@ -1,0 +1,335 @@
+# Common Schemas for Reezonly Space API
+components:
+  schemas:
+    # Standard Response Structure
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    # Error Response Structure
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        errors:
+          type: object
+          description: Ошибки валидации по полям
+          example:
+            email: ["Email already taken."]
+            password: ["Password minimum 6 characters."]
+
+    # Pagination Metadata
+    PaginationMeta:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: Общее количество элементов
+          example: 150
+        page:
+          type: integer
+          description: Текущая страница
+          example: 1
+        per-page:
+          type: integer
+          description: Элементов на странице
+          example: 20
+
+    # Base User Model
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 137
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        name:
+          type: string
+          example: "Иван Иванов"
+        role:
+          type: string
+          enum: [admin, editor, curator, student]
+          x-enumDescriptions:
+            admin: Администратор (полный доступ)
+            editor: Контент-редактор
+            curator: Куратор/методист
+            student: Ученик/слушатель
+          example: "student"
+        status:
+          type: string
+          enum: [active, inactive, blocked]
+          x-enumDescriptions:
+            active: Активный пользователь
+            inactive: Неактивный (архив/черновик)
+            blocked: Заблокирован (без доступа)
+          example: "active"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+
+    # Base Group Model
+    Group:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Отдел продаж"
+        description:
+          type: string
+          example: "Сотрудники отдела продаж"
+        parent_id:
+          oneOf:
+            - type: integer
+              minimum: 1
+            - type: 'null'
+          example: null
+        members_count:
+          type: integer
+          example: 25
+        hierarchy_level:
+          type: integer
+          example: 0
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+
+    # Base Certificate Model
+    Certificate:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: "Сертификат о прохождении курса"
+        description:
+          type: string
+          example: "Выдан за успешное завершение курса"
+        issued_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        status:
+          type: string
+          enum: [issued, revoked, expired]
+          x-enumDescriptions:
+            issued: Сертификат выдан
+            revoked: Сертификат отозван
+            expired: Срок действия истёк
+          example: "issued"
+
+    # Certificate Template Model
+    CertificateTemplate:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 3
+        name:
+          type: string
+          description: Название шаблона сертификата
+          example: "Standard Completion"
+        description:
+          type: string
+          description: Краткое описание шаблона
+          example: "Базовый шаблон для завершения курса"
+        file_url:
+          type: string
+          format: uri
+          description: Ссылка на файл шаблона (PDF/DOCX)
+          example: "https://cdn.space.com/cert-templates/standard.pdf"
+        preview_url:
+          type: string
+          format: uri
+          description: Превью изображения шаблона
+          example: "https://cdn.space.com/cert-templates/standard.png"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-12-01T10:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-12-15T15:30:00Z"
+
+    # Detailed Certificate view
+    CertificateDetail:
+      allOf:
+        - $ref: '#/components/schemas/Certificate'
+        - type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+            course:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  example: 480
+                title:
+                  type: string
+                  example: "Data Analytics 101"
+            template:
+              $ref: '#/components/schemas/CertificateTemplate'
+            download_url:
+              type: string
+              format: uri
+              description: Ссылка на скачивание PDF сертификата
+              example: "https://cdn.space.com/certificates/CERT-2025-0001.pdf"
+
+    # Date value with unix and iso
+    DateValue:
+      type: object
+      properties:
+        unix:
+          type: integer
+          nullable: true
+          example: 1730399460
+        iso:
+          type: string
+          nullable: true
+          example: "2024-10-31T13:11:00+03:00"
+
+    # Import Status Model
+    ImportStatus:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "import_123456"
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+          x-enumDescriptions:
+            pending: Задача создана, ожидает запуска
+            processing: Импорт выполняется
+            completed: Импорт успешно завершён
+            failed: Импорт завершился ошибкой
+          example: "processing"
+        progress:
+          type: object
+          properties:
+            total:
+              type: integer
+              example: 1000
+            processed:
+              type: integer
+              example: 650
+            errors:
+              type: integer
+              example: 5
+        started_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+        estimated_completion:
+          type: string
+          format: date-time
+          example: "2024-01-15T11:00:00Z"
+
+    # Base Course Model
+    Course:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 101
+        title:
+          type: string
+          example: "Онбординг"
+        description:
+          type: string
+          example: "Базовый курс для новых сотрудников"
+        status:
+          type: string
+          enum: [draft, active, archived]
+          example: active
+        price:
+          type: number
+          format: float
+          example: 0
+        duration:
+          type: string
+          description: Продолжительность в удобном формате
+          example: "2h"
+        level:
+          type: string
+          enum: [beginner, intermediate, advanced]
+          example: beginner
+        category:
+          type: object
+          properties:
+            id: { type: integer, example: 5 }
+            name: { type: string, example: "Корпоративное обучение" }
+        instructor:
+          type: object
+          properties:
+            id: { type: integer, example: 77 }
+            name: { type: string, example: "Анна Смирнова" }
+            avatar_url:
+              type: string
+              format: uri
+              example: "https://cdn.space/instructors/77.png"
+        thumbnail_url:
+          type: string
+          format: uri
+          example: "https://cdn.space/courses/101.png"
+        lms_id:
+          type: integer
+          example: 501
+
+    CourseDetail:
+      allOf:
+        - $ref: '#/components/schemas/Course'
+        - type: object
+          properties:
+            syllabus:
+              type: array
+              description: Список модулей/уроков
+              items:
+                type: object
+                properties:
+                  id: { type: integer, example: 1 }
+                  title: { type: string, example: "Введение" }
+                  description: { type: string, example: "Как работать в системе" }
+                  duration: { type: string, example: "10m" }
+
+    # File Upload Response
+    FileUploadResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        file_id:
+          type: string
+          example: "file_abc123"
+        filename:
+          type: string
+          example: "users_import.xlsx"
+        size:
+          type: integer
+          example: 25600
+        mime_type:
+          type: string
+          example: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"

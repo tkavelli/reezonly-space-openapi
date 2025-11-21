@@ -34,6 +34,7 @@ paths:
 
   /course/course/index:
     get:
+      operationId: listCourses
       tags: [Courses]
       summary: Получить каталог курсов
       description: Возвращает список доступных курсов с базовой информацией (только чтение)
@@ -79,33 +80,71 @@ paths:
                           properties:
                             id:
                               type: integer
+                              example: 101
                             title:
                               type: string
+                              example: "Онбординг"
                             description:
                               type: string
+                              example: "Базовый курс для новых сотрудников"
                             status:
                               type: string
+                              example: "active"
                             price:
                               type: number
+                              example: 1990
                             duration:
                               type: string
+                              example: "6h"
                             category:
                               type: object
                               properties:
                                 id:
                                   type: integer
+                                  example: 5
                                 name:
                                   type: string
+                                  example: "Корпоративное обучение"
                             thumbnail_url:
                               type: string
+                              example: "https://cdn.space/courses/101.png"
                             lms_id:
                               type: integer
                               description: ID курса в LMS системе
+                              example: 501
                             student_count:
                               type: integer
+                              example: 240
+              examples:
+                courses_page:
+                  summary: Список курсов с фильтром по статусу
+                  value:
+                    success: true
+                    data:
+                      - id: 101
+                        title: "Онбординг"
+                        description: "Базовый курс для новых сотрудников"
+                        status: "active"
+                        price: 0
+                        duration: "2h"
+                        category: { id: 5, name: "Корпоративное обучение" }
+                        thumbnail_url: "https://cdn.space/courses/101.png"
+                        lms_id: 501
+                        student_count: 240
+                      - id: 102
+                        title: "Продажи B2B"
+                        description: "Практикум по продажам"
+                        status: "active"
+                        price: 1990
+                        duration: "6h"
+                        category: { id: 6, name: "Продажи" }
+                        thumbnail_url: "https://cdn.space/courses/102.png"
+                        lms_id: 502
+                        student_count: 120
 
   /course/course/view:
     get:
+      operationId: getCourse
       tags: [Courses]
       summary: Получить детальную информацию о курсе
       description: Возвращает полную информацию о курсе включая программу обучения (только чтение)
@@ -124,76 +163,39 @@ paths:
                       data:
                         type: object
                         properties:
-                          id:
-                            type: integer
-                          title:
-                            type: string
-                          description:
-                            type: string
-                          status:
-                            type: string
-                          price:
-                            type: number
-                          duration:
-                            type: string
-                          level:
-                            type: string
-                            enum: [beginner, intermediate, advanced]
-                          category:
-                            type: object
-                            properties:
-                              id:
-                                type: integer
-                              name:
-                                type: string
-                          instructor:
-                            type: object
-                            properties:
-                              id:
-                                type: integer
-                              name:
-                                type: string
-                              avatar_url:
-                                type: string
-                          thumbnail_url:
-                              type: string
-                          lms_id:
-                            type: integer
-                            description: ID курса в LMS системе
-                          syllabus:
-                            type: array
-                            description: Программа курса
-                            items:
-                              type: object
-                              properties:
-                                id:
-                                  type: integer
-                                title:
-                                  type: string
-                                description:
-                                  type: string
-                                duration:
-                                  type: string
-                                order:
-                                  type: integer
-                          requirements:
-                            type: array
-                            items:
-                              type: string
-                          outcomes:
-                            type: array
-                            items:
-                              type: string
-                          student_count:
-                            type: integer
-                          rating:
-                            type: number
-                          reviews_count:
-                            type: integer
-                          created_at:
-                            type: string
-                          updated_at:
-                            type: string
+                          item:
+                            $ref: './core/common/schemas.yaml#/components/schemas/CourseDetail'
+              examples:
+                course_detail:
+                  summary: Детальный курс с программой
+                  value:
+                    success: true
+                    data:
+                      item:
+                        id: 101
+                        title: "Онбординг"
+                        description: "Базовый курс для новых сотрудников"
+                        status: "active"
+                        price: 0
+                        duration: "2h"
+                        level: "beginner"
+                        category: { id: 5, name: "Корпоративное обучение" }
+                        instructor: { id: 77, name: "Анна Смирнова", avatar_url: "https://cdn.space/instructors/77.png" }
+                        thumbnail_url: "https://cdn.space/courses/101.png"
+                        lms_id: 501
+                        syllabus:
+                          - id: 1
+                            title: "Введение"
+                            description: "Как работать в системе"
+                            duration: "10m"
+                            order: 1
+                        requirements: ["Корпоративная почта"]
+                        outcomes: ["Понимание процессов компании"]
+                        student_count: 240
+                        rating: 4.8
+                        reviews_count: 56
+                        created_at: "2024-01-10T09:00:00Z"
+                        updated_at: "2024-11-02T11:00:00Z"
         '404':
           description: Course not found
           $ref: './core/common/responses.yaml#/components/responses/NotFound'
@@ -202,6 +204,7 @@ paths:
 
   /dictionary/dictionary/page-types:
     get:
+      operationId: listPageTypes
       tags: [Pages]
       summary: Получить список типов страниц
       description: |
@@ -229,11 +232,26 @@ paths:
                             type: array
                             items:
                               $ref: '#/components/schemas/PageType'
+                            example:
+                              id: 3
+                              name: "landing"
+              examples:
+                page_types:
+                  summary: Доступные типы страниц
+                  value:
+                    success: true
+                    data:
+                      items:
+                        - id: 3
+                          name: "landing"
+                        - id: 4
+                          name: "blog"
         '400':
           $ref: './core/common/responses.yaml#/components/responses/BadRequest'
 
   /dictionary/dictionary/pages:
     get:
+      operationId: listPages
       tags: [Pages]
       summary: Получить справочник страниц
       description: |
@@ -261,6 +279,32 @@ paths:
                             type: array
                             items:
                               $ref: '#/components/schemas/DictionaryPage'
+                            example:
+                              id: 12
+                              alias: "product-page-42"
+                              title: "Курс \"Data Science\""
+                              description: "Лендинг продукта Data Science"
+                              enabled: true
+                              type: "product-page"
+              examples:
+                pages_dict:
+                  summary: Справочник страниц
+                  value:
+                    success: true
+                    data:
+                      items:
+                        - id: 12
+                          alias: "product-page-42"
+                          title: "Курс \"Data Science\""
+                          description: "Лендинг продукта Data Science"
+                          enabled: true
+                          type: "product-page"
+                        - id: 18
+                          alias: "help-center"
+                          title: "Центр помощи"
+                          description: "Справочные статьи"
+                          enabled: true
+                          type: "help"
         '400':
           $ref: './core/common/responses.yaml#/components/responses/BadRequest'
 
@@ -300,37 +344,40 @@ paths:
                   - type: object
                     properties:
                       data:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: integer
-                            title:
-                              type: string
-                            slug:
-                              type: string
-                            type:
-                              type: string
-                            status:
-                              type: string
-                            excerpt:
-                              type: string
-                            thumbnail_url:
-                              type: string
-                            published_at:
-                              type: string
-                            author:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
                               type: object
                               properties:
                                 id:
                                   type: integer
-                                name:
+                                title:
                                   type: string
-                            tags:
-                              type: array
-                              items:
-                                type: string
+                                slug:
+                                  type: string
+                                type:
+                                  type: string
+                                status:
+                                  type: string
+                                excerpt:
+                                  type: string
+                                thumbnail_url:
+                                  type: string
+                                published_at:
+                                  type: string
+                                author:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: integer
+                                    name:
+                                      type: string
+                                tags:
+                                  type: array
+                                  items:
+                                    type: string
 
   /page/page/view:
     get:
