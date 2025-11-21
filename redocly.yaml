@@ -5,6 +5,36 @@ apis:
 extends:
   - recommended
 
+theme:
+  openapi:
+    logo:
+      src: https://lms.reezonly.ru/img/logo/logo-lms.svg
+      altText: Reezonly LMS
+      gutter: 16px
+      maxHeight: 40px
+    colors:
+      primary:
+        main: '#514df7'
+      text:
+        primary: '#1f2430'
+        secondary: '#4b5565'
+      sidebar:
+        backgroundColor: '#f5f7fb'
+      rightPanel:
+        backgroundColor: '#0f172a'
+        textColor: '#e2e8f0'
+    typography:
+      fontFamily: '"Inter", "Helvetica Neue", Arial, sans-serif'
+      headings:
+        fontFamily: '"Inter", "Helvetica Neue", Arial, sans-serif'
+        fontWeight: 700
+      code:
+        fontFamily: '"SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", monospace'
+    sidebar:
+      width: 280px
+    rightPanel:
+      width: 40%
+
 rules:
   no-unused-components: error
   no-unresolved-refs: error
