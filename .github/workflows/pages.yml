@@ -27,7 +27,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci && npm ci --prefix tools
 
       - name: Build docs
         run: npm run build-docs
