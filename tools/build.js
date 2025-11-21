@@ -258,8 +258,8 @@ async function buildOpenAPI() {
     console.log('🔍 Processing final specification...');
     await SwaggerParser.dereference(completeSpec);
 
-    // Save complete specification
-    const outputPath = path.resolve(__dirname, '../bundles/complete-api.yaml');
+    // Save complete specification as the single source of truth
+    const outputPath = path.resolve(__dirname, '../space-platform-api.yaml');
     const yamlContent = yaml.dump(completeSpec, {
       indent: 2,
       lineWidth: -1,

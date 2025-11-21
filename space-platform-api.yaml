@@ -917,6 +917,7 @@ paths:
                     id:
                       type: integer
                       minimum: 1
+                      example: 101
                       description: ID пользователя (только для update)
                     avatar:
                       type: string
@@ -971,6 +972,7 @@ paths:
                         properties:
                           user_id:
                             type: integer
+                            example: 123
               examples:
                 user_created:
                   summary: Пользователь создан
@@ -1149,6 +1151,7 @@ paths:
                     id:
                       type: integer
                       minimum: 1
+                      example: 101
                       description: ID пользователя (только для update)
                     avatar:
                       type: string
@@ -1206,6 +1209,7 @@ paths:
                         properties:
                           user_id:
                             type: integer
+                            example: 123
               examples:
                 updated:
                   summary: Обновление роли и статуса
@@ -1562,12 +1566,16 @@ paths:
                       properties:
                         userId:
                           type: integer
+                          example: 501
                         courseId:
                           type: integer
+                          example: 901
                         result:
                           type: boolean
+                          example: true
                         new:
                           type: boolean
+                          example: false
               examples:
                 assigned:
                   summary: Успешное назначение
@@ -1688,10 +1696,13 @@ paths:
                           properties:
                             userId:
                               type: integer
+                              example: 501
                             courseId:
                               type: integer
+                              example: 901
                             result:
                               type: boolean
+                              example: true
                       - type: integer
                         description: Количество удалённых записей
               examples:
@@ -1889,8 +1900,10 @@ paths:
                         properties:
                           jobId:
                             type: integer
+                            example: 1201
                           reportKey:
                             type: string
+                            example: import-users-2025-02-10.xlsx
               examples:
                 import_started:
                   summary: Импорт принят и обрабатывается
@@ -1975,6 +1988,7 @@ paths:
                           progress:
                             type: integer
                             description: Процент завершения импорта
+                            example: 42
                           report:
                             oneOf:
                               - type: 'null'
@@ -1982,8 +1996,10 @@ paths:
                                 properties:
                                   successCount:
                                     type: integer
+                                    example: 118
                                   errorCount:
                                     type: integer
+                                    example: 2
               examples:
                 in_progress:
                   summary: Импорт в процессе
@@ -2500,16 +2516,17 @@ paths:
                                 - type: object
                                   properties:
                                     parent:
-                                      type: object
-                                      description: Информация о родительской группе
-                                      properties:
-                                        id:
-                                          type: integer
-                                          example: 1
-                                        name:
-                                          type: string
-                                          example: IT Department
-                                      nullable: true
+                                      oneOf:
+                                        - type: object
+                                          description: Информация о родительской группе
+                                          properties:
+                                            id:
+                                              type: integer
+                                              example: 1
+                                            name:
+                                              type: string
+                                              example: IT Department
+                                        - type: 'null'
               examples:
                 groups_list:
                   summary: Список групп с пагинацией
@@ -2827,16 +2844,17 @@ paths:
                                         - type: object
                                           properties:
                                             parent:
-                                              type: object
-                                              description: Информация о родительской группе
-                                              properties:
-                                                id:
-                                                  type: integer
-                                                  example: 1
-                                                name:
-                                                  type: string
-                                                  example: IT Department
-                                              nullable: true
+                                              oneOf:
+                                                - type: object
+                                                  description: Информация о родительской группе
+                                                  properties:
+                                                    id:
+                                                      type: integer
+                                                      example: 1
+                                                    name:
+                                                      type: string
+                                                      example: IT Department
+                                                - type: 'null'
                                   rules:
                                     type: array
                                     description: Правила доступа группы
@@ -2845,10 +2863,13 @@ paths:
                                       properties:
                                         type:
                                           type: integer
+                                          example: 1
                                         objectId:
                                           type: integer
+                                          example: 42
                                         objectType:
                                           type: string
+                                          example: course
               examples:
                 group_detail:
                   summary: Детальная информация о группе
@@ -2976,9 +2997,11 @@ paths:
                     name:
                       type: string
                       description: Название группы
+                      example: Support
                     comment:
                       type: string
                       description: Описание группы
+                      example: Группа поддержки
                     parent_id:
                       oneOf:
                         - type: integer
@@ -3039,6 +3062,7 @@ paths:
                         properties:
                           group_id:
                             type: integer
+                            example: 25
               examples:
                 created:
                   summary: Создана подгруппа
@@ -3163,9 +3187,11 @@ paths:
                     name:
                       type: string
                       description: Название группы
+                      example: Support
                     comment:
                       type: string
                       description: Описание группы
+                      example: Группа поддержки
                     parent_id:
                       oneOf:
                         - type: integer
@@ -3225,6 +3251,7 @@ paths:
                         properties:
                           group_id:
                             type: integer
+                            example: 10
               examples:
                 updated:
                   summary: Переименование и перенос
@@ -3495,6 +3522,7 @@ paths:
                             id:
                               type: integer
                               description: ID группы
+                              example: 1
                             name:
                               type: string
                               description: Название группы
@@ -6045,34 +6073,73 @@ paths:
                                   properties:
                                     unix:
                                       type: integer
-                                      nullable: true
                                       example: 1730399460
                                     iso:
                                       type: string
-                                      nullable: true
                                       example: '2024-10-31T13:11:00+03:00'
+                                  oneOf:
+                                    - type: object
+                                      properties:
+                                        unix:
+                                          type: integer
+                                          example: 1730399460
+                                        iso:
+                                          type: string
+                                          example: '2024-10-31T13:11:00+03:00'
+                                    - type: object
+                                      properties:
+                                        unix:
+                                          type: 'null'
+                                        iso:
+                                          type: 'null'
                                 last_activity_at:
                                   type: object
                                   properties:
                                     unix:
                                       type: integer
-                                      nullable: true
                                       example: 1730399460
                                     iso:
                                       type: string
-                                      nullable: true
                                       example: '2024-10-31T13:11:00+03:00'
+                                  oneOf:
+                                    - type: object
+                                      properties:
+                                        unix:
+                                          type: integer
+                                          example: 1730399460
+                                        iso:
+                                          type: string
+                                          example: '2024-10-31T13:11:00+03:00'
+                                    - type: object
+                                      properties:
+                                        unix:
+                                          type: 'null'
+                                        iso:
+                                          type: 'null'
                                 registered_at:
                                   type: object
                                   properties:
                                     unix:
                                       type: integer
-                                      nullable: true
                                       example: 1730399460
                                     iso:
                                       type: string
-                                      nullable: true
                                       example: '2024-10-31T13:11:00+03:00'
+                                  oneOf:
+                                    - type: object
+                                      properties:
+                                        unix:
+                                          type: integer
+                                          example: 1730399460
+                                        iso:
+                                          type: string
+                                          example: '2024-10-31T13:11:00+03:00'
+                                    - type: object
+                                      properties:
+                                        unix:
+                                          type: 'null'
+                                        iso:
+                                          type: 'null'
                                 progress_percent:
                                   type: integer
                                   minimum: 0
@@ -6303,6 +6370,7 @@ components:
             id:
               type: integer
               minimum: 1
+              example: 101
               description: ID пользователя (только для update)
             avatar:
               type: string
@@ -6795,16 +6863,17 @@ components:
         - type: object
           properties:
             parent:
-              type: object
-              description: Информация о родительской группе
-              properties:
-                id:
-                  type: integer
-                  example: 1
-                name:
-                  type: string
-                  example: IT Department
-              nullable: true
+              oneOf:
+                - type: object
+                  description: Информация о родительской группе
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    name:
+                      type: string
+                      example: IT Department
+                - type: 'null'
     GroupDetail:
       allOf:
         - type: object
@@ -6977,16 +7046,17 @@ components:
                   - type: object
                     properties:
                       parent:
-                        type: object
-                        description: Информация о родительской группе
-                        properties:
-                          id:
-                            type: integer
-                            example: 1
-                          name:
-                            type: string
-                            example: IT Department
-                        nullable: true
+                        oneOf:
+                          - type: object
+                            description: Информация о родительской группе
+                            properties:
+                              id:
+                                type: integer
+                                example: 1
+                              name:
+                                type: string
+                                example: IT Department
+                          - type: 'null'
             rules:
               type: array
               description: Правила доступа группы
@@ -6995,16 +7065,20 @@ components:
                 properties:
                   type:
                     type: integer
+                    example: 1
                   objectId:
                     type: integer
+                    example: 42
                   objectType:
                     type: string
+                    example: course
     GroupHierarchyItem:
       type: object
       properties:
         id:
           type: integer
           description: ID группы
+          example: 1
         name:
           type: string
           description: Название группы
@@ -7111,9 +7185,11 @@ components:
             name:
               type: string
               description: Название группы
+              example: Support
             comment:
               type: string
               description: Описание группы
+              example: Группа поддержки
             parent_id:
               oneOf:
                 - type: integer
@@ -7206,6 +7282,7 @@ components:
               type: integer
               minimum: 1
               description: ID группы
+              example: 10
             userIds:
               type: array
               items:
@@ -7213,6 +7290,9 @@ components:
                 minimum: 1
               maxItems: 100
               description: Массив ID пользователей (максимум 100)
+              example:
+                - 501
+                - 502
         - type: object
           description: Операция с несколькими группами
           required:
@@ -7226,6 +7306,9 @@ components:
                 minimum: 1
               maxItems: 100
               description: Массив ID пользователей (максимум 100)
+              example:
+                - 501
+                - 502
             groupIds:
               type: array
               items:
@@ -7233,6 +7316,9 @@ components:
                 minimum: 1
               maxItems: 10
               description: Массив ID групп (максимум 10)
+              example:
+                - 12
+                - 15
     GroupMemberStats:
       type: object
       properties:
@@ -7523,12 +7609,25 @@ components:
       properties:
         unix:
           type: integer
-          nullable: true
           example: 1730399460
         iso:
           type: string
-          nullable: true
           example: '2024-10-31T13:11:00+03:00'
+      oneOf:
+        - type: object
+          properties:
+            unix:
+              type: integer
+              example: 1730399460
+            iso:
+              type: string
+              example: '2024-10-31T13:11:00+03:00'
+        - type: object
+          properties:
+            unix:
+              type: 'null'
+            iso:
+              type: 'null'
     ImportStatus:
       type: object
       properties:

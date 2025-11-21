@@ -39,9 +39,14 @@ components:
               - type: object
                 properties:
                   data:
-                    type: array
-                    items:
-                      $ref: './schemas.yaml#/components/schemas/User'
+                    type: object
+                    properties:
+                      pagination:
+                        $ref: './schemas.yaml#/components/schemas/PaginationMeta'
+                      items:
+                        type: array
+                        items:
+                          $ref: './schemas.yaml#/components/schemas/User'
 
     GroupList:
       description: Список групп успешно получен

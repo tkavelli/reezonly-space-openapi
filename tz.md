@@ -1,0 +1,335 @@
+# ТЗ по наполнению публичной OpenAPI-спеки (45 методов)
+
+## Что сделать
+- Добавить `operationId` для **всех 45 методов**.
+  - Формат: PascalCase без пробелов, отражает действие + сущность, напр. `UserList`, `GroupExportDownload`, `CertificateDownloadZip`, `IntegrationReportConsolidated`.
+  - Уникальность на весь файл, без слэшей и пробелов.
+- Добавить **примеры (Examples)** для запросов/ответов.
+  - Указывать в OpenAPI-полях `requestBody.content.<mime>.example` и `responses.<code>.content.<mime>.example` (или `examples` при нескольких вариантах).
+  - Формат примера: валидный JSON, минимальный, но отражает ключевые поля (идентификаторы, обязательные параметры, типы дат/строк, ключи пагинации, статусы).
+  - Для GET без тела — только `responses`.
+  - Желательно: успех (200/201) + типичная ошибка (400/401/403) с структурой `{ "code": "...", "message": "..." }`.
+
+
+## План правок и проверки (чекбоксы)
+
+### Общие проверки для всех методов
+- [ ] ❗ Сравнить HTTP-метод и путь со словарём контроллера/формы: фактический метод ↔ указан в spec; лишние /v1 убрать (серверы уже /api/v1).
+- [ ] Перенести все фильтры в query parameters; requestBody оставлять только если реально читается в коде.
+- [ ] Свести payload-схемы к фактическим моделям (form/request DTO): обязательные/опциональные поля, типы, значения по умолчанию.
+- [ ] ❗ Ответ: структура data/ items / pagination / meta должна совпадать с реальным ответом контроллера; примеры подправить под фактический JSON.
+- [ ] Ошибки: у каждого метода добавить типовой 4xx с реальной схемой ErrorResponse; где есть валидация — показать пример.
+- [ ] Медиа-тип примеров: убедиться, что примеры соответствуют схемам (no-invalid-media-type-examples).
+- [ ] Все пути должны использовать общие components (parameters/schemas/responses) через $ref; для реально неиспользуемых компонентов — x-internal: true, чтобы не ловить no-unused-components.
+
+### Конкретные эндпоинты
+- [x] ❗ `/group/group/index` — GET, фильтры page|per_page|parent_id|search|sort в query, requestBody удалить; ответ: data.items + pagination (добавить getPaginationInfo в код или честно описать текущий ответ без meta и обновить примеры).
+- [x] ❗ Префикс путей: в `groups.yaml` и `space-platform-api.yaml` убрать /v1 из путей, оставить servers: /api/v1.
+- [x] `/user/user/add-course` — payload: `{ userIds: number[], courses: [{ id: number, learning_group_id?: number, group_name?: string }] }`; обновить схемы и примеры.
+- [x] `/user/user/delete-course` — тот же payload, операция удаления; обновить схемы и примеры.
+- [ ] Вернуть общий блок `components.parameters/schemas/responses` (PaginationMeta, SuccessResponse, ErrorResponse, User, Group, Course, Certificate и т.п.) и подвязать их через $ref там, где сейчас инлайны.
+
+### Контроль после правок
+- [ ] `npm run bundle` — убедиться, что нет `Error resolving $ref`.
+- [ ] `npm run lint` — исправить остаточные warning’и (operation-4xx-response, info-license, no-server-example.com и др.).
+
+## Чек-лист по методам
+
+### Users (16)
+- `GET /user/user/index`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `GET /user/user/admin`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `GET /user/user/view`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `GET /dictionary/user/fields`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `POST /user/user/create`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `PUT /user/user/update`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `DELETE /user/user/delete`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `GET /dictionary/user/statuses`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `POST /user/user/add-course`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `POST /user/user/delete-course`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `POST /user/user/preview`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `POST /user/user/load`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `GET /user/user/get-import-progress`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `GET /user/user/load-template`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `GET /user/import-report/index`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+
+
+### Groups (12)
+- `GET /group/group/index`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `GET /group/group/view`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `POST /group/group/create`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `PUT /group/group/update`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `DELETE /group/group/delete`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `DELETE /group/group/multiple-delete`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `GET /dictionary/user/groups`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `POST /group/group/user-add`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `POST /group/group/user-delete`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `POST /group/group/export`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `GET /group/group/export-download`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `POST /group/group/assign-courses`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+
+### Certificates (12)
+- `GET /certificate/template/index`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `GET /certificate/template/view`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `POST /certificate/certificate/create`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `GET /certificate/certificate/index`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `GET /certificate/certificate/view`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `GET /certificate/certificate/download`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `POST /certificate/download-zip`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `GET /certificate/course/index`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `GET /certificate/user/index`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `GET /certificate/type/index`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `GET /certificate/variable/index`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `GET /certificate/variable-list/index`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+
+### Learning (4)
+- `GET /course/course/index`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `GET /course/course/view`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `GET /dictionary/dictionary/page-types`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+- `GET /dictionary/dictionary/pages`
+  - [x] OperationId
+  - [x] Examples
+  - [x] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса
+
+### Integration Reports (1)
+- `POST /integration/report/consolidated`
+  - [x] OperationId
+  - [x] Examples
+  - [ ] Реалистичность: метод/путь/параметры/тело/ответ/коды совпадают с фактическим поведением сервиса (не реализован, помечен x-internal)
+
+### Примеры у скалярных полей (lint `scalar-property-missing-example`)
+- Users (16)
+  - [x] GET /user/user/index
+  - [x] GET /user/user/admin
+  - [x] GET /user/user/view
+  - [x] GET /dictionary/user/fields
+  - [x] POST /user/user/create
+  - [x] PUT /user/user/update
+  - [x] DELETE /user/user/delete
+  - [x] GET /dictionary/user/statuses
+  - [x] POST /user/user/add-course
+  - [x] POST /user/user/delete-course
+  - [x] POST /user/user/preview
+  - [x] POST /user/user/load
+  - [x] GET /user/user/get-import-progress
+  - [x] GET /user/user/load-template
+  - [x] GET /user/import-report/index
+  - [ ] GET /user/importreport/download
+  - [x] GET /user/importreport/download
+- Groups (12)
+  - [x] GET /group/group/index
+  - [x] GET /group/group/view
+  - [x] POST /group/group/create
+  - [x] PUT /group/group/update
+  - [x] DELETE /group/group/delete
+  - [x] DELETE /group/group/multiple-delete
+  - [x] GET /dictionary/user/groups
+  - [x] POST /group/group/user-add
+  - [x] POST /group/group/user-delete
+  - [x] POST /group/group/export
+  - [x] GET /group/group/export-download
+  - [x] POST /group/group/assign-courses
+- Certificates (12)
+  - [x] GET /certificate/template/index
+  - [x] GET /certificate/template/view
+  - [x] POST /certificate/certificate/create
+  - [x] GET /certificate/certificate/index
+  - [x] GET /certificate/certificate/view
+  - [x] GET /certificate/certificate/download
+  - [x] POST /certificate/download-zip
+  - [x] GET /certificate/course/index
+  - [x] GET /certificate/user/index
+  - [x] GET /certificate/type/index
+  - [x] GET /certificate/variable/index
+  - [x] GET /certificate/variable-list/index
+- Learning (4)
+  - [x] GET /course/course/index
+  - [x] GET /course/course/view
+  - [x] GET /dictionary/dictionary/page-types
+  - [x] GET /dictionary/dictionary/pages
+- Integration Reports (1)
+  - [x] POST /integration/report/consolidated
+
+## Прогресс / План действий
+- Users: все 16 методов — `operationId` и примеры готовы, бандл собирается.
+- Groups: все 12 методов — `operationId` и примеры готовы, бандл собирается.
+- Certificates: все 12 методов — `operationId` и примеры готовы, бандл сохраняет их (один исходный файл, симлинк для `/bundles`).
+- Линтер: `redocly lint space-platform-api.yaml` проходит без ошибок (осталось 59 warning'ов по media-type examples, 4xx-ответам и placeholder-доменам).
+- Состояние дерева: изменены `specs/certificates.yaml`, `specs/groups.yaml`, `specs/users.yaml`, `space-platform-api.yaml`, `README*`, `Dockerfile`, `package.json`, `redocly.yaml`, `tools/build.js`; новые lock/node_modules, симлинк `bundles/complete-api.yaml`.
+- Следующий шаг: при желании убрать предупреждения (добавить 4xx-ответы, поправить примеры в Certificate examples, заменить example.com), затем финальный `npm run lint && npm run bundle && npm run build-docs`; перед коммитом удалить `node_modules`.
+
+## Линт (redocly lint space-platform-api.yaml) — статус
+- Ошибок нет, 59 warning'ов: `no-invalid-media-type-examples` (примеры сертификатов), `operation-4xx-response` (нет 4xx), `info-license`/`no-server-example.com`.
+- operation-id-verb (45 шт.): переименовать `operationId` на разрешённые глаголы (`list`, `get`, `create`, `update`, `delete`, `download`, `assign`). Чек-лист для прогона:
+  - [x] GET /user/user/index → listUsers
+  - [x] GET /user/user/admin → listAdminUsers
+  - [x] GET /user/user/view → getUser
+  - [x] GET /dictionary/user/fields → listUserFields
+  - [x] POST /user/user/create → createUser
+  - [x] PUT /user/user/update → updateUser
+  - [x] DELETE /user/user/delete → deleteUser
+  - [x] GET /dictionary/user/statuses → listUserStatuses
+  - [x] POST /user/user/add-course → assignUserCourse
+  - [x] POST /user/user/delete-course → deleteUserCourse
+  - [x] POST /user/user/preview → getUserImportPreview
+  - [x] POST /user/user/load → createUserImport
+  - [x] GET /user/user/get-import-progress → getUserImportProgress
+  - [x] GET /user/user/load-template → downloadUserImportTemplate
+  - [x] GET /user/import-report/index → listUserImportReports
+  - [x] GET /user/importreport/download → downloadUserImportReport
+  - [x] GET /group/group/index → listGroups
+  - [x] GET /group/group/view → getGroup
+  - [x] POST /group/group/create → createGroup
+  - [x] PUT /group/group/update → updateGroup
+  - [x] DELETE /group/group/delete → deleteGroup
+  - [x] DELETE /group/group/multiple-delete → deleteGroupsBulk
+  - [x] GET /dictionary/user/groups → listDictionaryGroups
+  - [x] POST /group/group/user-add → assignGroupUser
+  - [x] POST /group/group/user-delete → deleteGroupUser
+  - [x] POST /group/group/export → createGroupExport
+  - [x] GET /group/group/export-download → downloadGroupExport
+  - [x] POST /group/group/assign-courses → assignGroupCourses
+  - [x] GET /certificate/template/index → listCertificateTemplates
+  - [x] GET /certificate/template/view → getCertificateTemplate
+  - [x] POST /certificate/certificate/create → createCertificate
+  - [x] GET /certificate/certificate/index → listCertificates
+  - [x] GET /certificate/certificate/view → getCertificate
+  - [x] GET /certificate/certificate/download → downloadCertificate
+  - [x] POST /certificate/download-zip → downloadCertificatesZip
+  - [x] GET /certificate/course/index → listCertificateCourses
+  - [x] GET /certificate/user/index → listCertificateUsers
+  - [x] GET /certificate/type/index → listCertificateTypes
+  - [x] GET /certificate/variable/index → listCertificateVariables
+  - [x] GET /certificate/variable-list/index → listCertificateVariableValues
+  - [x] GET /course/course/index → listCourses
+  - [x] GET /course/course/view → getCourse
+  - [x] GET /dictionary/dictionary/page-types → listPageTypes
+  - [x] GET /dictionary/dictionary/pages → listPages
+  - [x] POST /integration/report/consolidated → createIntegrationReport
+- scalar-property-missing-example: ✔️ закрыто (добавлены примеры в Integration Report, user-delete, templates и т.д.).
+- struct rule: ✔️ закрыто (заменён `nullable: true` на `type: [*, "null"]`).

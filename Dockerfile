@@ -14,9 +14,8 @@ RUN cd tools && npm ci --ignore-scripts --no-fund --no-audit
 # Copy sources
 COPY . .
 
-# Build 45-method public bundle and HTML docs
+# Build 45-method public bundle and HTML docs (single-source space-platform-api.yaml)
 RUN cd tools && npm run build \
- && cp bundles/complete-api.yaml ../space-platform-api.yaml \
  && cd .. \
  && npm run bundle \
  && npm run build-docs

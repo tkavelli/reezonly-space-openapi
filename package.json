@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "lint": "redocly lint space-platform-api.yaml",
-    "bundle": "redocly bundle space-platform-api.yaml -o bundles/complete-api.yaml",
-    "build-docs": "redocly build-docs space-platform-api.yaml -o docs/index.html",
+    "build:modules": "cd tools && npm run build",
+    "bundle": "npm run build:modules && redocly bundle space-platform-api.yaml -o space-platform-api.bundle.tmp.yaml && mv space-platform-api.bundle.tmp.yaml space-platform-api.yaml && mkdir -p bundles && ln -sf ../space-platform-api.yaml bundles/complete-api.yaml",
+    "build-docs": "npm run bundle && redocly build-docs space-platform-api.yaml -o docs/index.html",
     "watch": "nodemon --watch specs --ext yaml --exec \"npm run bundle\"",
     "ci:spec": "npm run lint && npm run bundle",
     "test": "echo \"Error: no test specified\" && exit 1"

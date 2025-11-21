@@ -20,6 +20,7 @@ tags:
 paths:
   /v1/integration/report/consolidated:
     post:
+      operationId: createIntegrationReport
       tags: [Integration Reports]
       summary: Сводный отчёт (JSON)
       description: |
@@ -39,24 +40,29 @@ paths:
                   type: array
                   items:
                     type: integer
+                  example: [59, 62]
                 group:
                   type: array
                   items:
                     type: integer
+                  example: [14]
                 user_ids:
                   type: array
                   items:
                     type: integer
+                  example: [215, 216]
                 progress_from:
                   type: integer
                   minimum: 0
                   maximum: 100
                   default: 0
+                  example: 50
                 progress_to:
                   type: integer
                   minimum: 0
                   maximum: 100
                   default: 100
+                  example: 85
                 fields:
                   type: object
                   additionalProperties:
@@ -64,19 +70,35 @@ paths:
                     items:
                       type: string
                   description: Фильтры по полям профиля (username, email, phone, department, position)
+                  example:
+                    email: ["@example.com"]
                 page:
                   type: integer
                   minimum: 1
                   default: 1
+                  example: 1
                 per-page:
                   type: integer
                   minimum: 1
                   maximum: 1000
                   default: 200
+                  example: 200
                 sort:
                   type: string
                   enum: [-date_added, date_added, -progress, progress]
                   default: -date_added
+                  example: -date_added
+            examples:
+              consolidated_request:
+                summary: Фильтр по продуктам и прогрессу
+                value:
+                  product: [59, 62]
+                  group: [14]
+                  progress_from: 50
+                  progress_to: 85
+                  page: 1
+                  per-page: 200
+                  sort: -date_added
       responses:
         '200':
           description: Отчёт сформирован

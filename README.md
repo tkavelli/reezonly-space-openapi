@@ -1,6 +1,6 @@
 # Reezonly Space OpenAPI (45 public methods)
 
-Однокнопочная сборка и просмотр публичной спеки.
+Однокнопочная сборка и просмотр публичной спеки. Один источник истины — `space-platform-api.yaml`; `bundles/complete-api.yaml` теперь лишь симлинк для обратной совместимости.
 
 ## Быстрый старт (Docker)
 ```bash
@@ -20,13 +20,13 @@ open http://localhost:3000
 ```bash
 npm ci
 cd tools && npm ci && cd ..
-npm run bundle
-npm run build-docs
+npm run bundle      # собирает specs/* в space-platform-api.yaml и обновляет симлинк bundles/complete-api.yaml
+npm run build-docs  # генерирует docs/index.html из space-platform-api.yaml
 python3 -m http.server 3000
 ```
 
 ## Сборщик
-- `tools/build.js` — склеивает 45 публичных методов из `specs/*` в `bundles/complete-api.yaml` и синкает в `space-platform-api.yaml`.
+- `tools/build.js` — склеивает 45 публичных методов из `specs/*` в **единственный** `space-platform-api.yaml`.
 - `redocly.yaml` — конфиг Redocly CLI.
 - `nginx.conf` — раздача статических docs + YAML в контейнере.
 

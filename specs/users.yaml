@@ -322,6 +322,7 @@ paths:
                         properties:
                           user_id:
                             type: integer
+                            example: 123
               examples:
                 user_created:
                   summary: Пользователь создан
@@ -402,6 +403,7 @@ paths:
                         properties:
                           user_id:
                             type: integer
+                            example: 123
               examples:
                 updated:
                   summary: Обновление роли и статуса
@@ -559,14 +561,18 @@ paths:
                     items:
                       type: object
                       properties:
-                        userId:
-                          type: integer
-                        courseId:
-                          type: integer
-                        result:
-                          type: boolean
-                        new:
-                          type: boolean
+                          userId:
+                            type: integer
+                            example: 501
+                          courseId:
+                            type: integer
+                            example: 901
+                          result:
+                            type: boolean
+                            example: true
+                          new:
+                            type: boolean
+                            example: false
               examples:
                 assigned:
                   summary: Успешное назначение
@@ -657,10 +663,13 @@ paths:
                           properties:
                             userId:
                               type: integer
+                              example: 501
                             courseId:
                               type: integer
+                              example: 901
                             result:
                               type: boolean
+                              example: true
                       - type: integer
                         description: Количество удалённых записей
               examples:
@@ -774,9 +783,10 @@ paths:
                         properties:
                           jobId:
                             type: integer
+                            example: 1201
                           reportKey:
                             type: string
-                              
+                            example: "import-users-2025-02-10.xlsx"
               examples:
                 import_started:
                   summary: Импорт принят и обрабатывается
@@ -819,6 +829,7 @@ paths:
                           progress:
                             type: integer
                             description: Процент завершения импорта
+                            example: 42
                           report:
                             oneOf:
                               - type: 'null'
@@ -826,8 +837,10 @@ paths:
                                 properties:
                                   successCount:
                                     type: integer
+                                    example: 118
                                   errorCount:
                                     type: integer
+                                    example: 2
               examples:
                 in_progress:
                   summary: Импорт в процессе
@@ -973,6 +986,7 @@ components:
             id:
               type: integer
               minimum: 1
+              example: 101
               description: ID пользователя (только для update)
             avatar:
               type: string

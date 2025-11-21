@@ -1,3 +1,24 @@
 apis:
   space:
     root: ./space-platform-api.yaml
+
+extends:
+  - recommended
+
+rules:
+  no-unused-components: error
+  no-unresolved-refs: error
+  operation-description: error
+  parameter-description: error
+  operation-operationId-unique: error
+  operation-tag-defined: error
+  scalar-property-missing-example: error
+  # кастом: operationId должен начинаться с глагола
+  rule/operation-id-verb:
+    subject:
+      type: Operation
+      property: operationId
+    assertions:
+      pattern: "^(get|list|create|update|delete|download|assign)[A-Z].+"
+    severity: error
+    message: "operationId must start with get|list|create|update|delete|download|assign."

@@ -23,14 +23,14 @@
 ```
 npm run lint
 ```
-Скрипт валидирует `bundles/complete-api.yaml` через `@apidevtools/swagger-parser`.
+Скрипт валидирует единый файл `space-platform-api.yaml` через `@apidevtools/swagger-parser`.
 
 ### Сборка из модулей (45 публичных методов)
 
 ```
 cd openapi/tools
 npm install   # один раз
-npm run build # собирает из specs/* в bundles/complete-api.yaml и sync в space-platform-api.yaml
+npm run build # собирает из specs/* в единый space-platform-api.yaml
 ```
 
 После сборки dev-сервер можно запустить:
@@ -38,7 +38,7 @@ npm run build # собирает из specs/* в bundles/complete-api.yaml и sy
 cd openapi
 python3 -m http.server 3000
 ```
-Актуальный бандл с cache-bust: `/bundles/complete-api.yaml?v=2025-11-20-01`.
+Актуальный YAML доступен по обоим путям: `/space-platform-api.yaml` (основной) и `/bundles/complete-api.yaml` (симлинк для обратной совместимости, можно добавлять cache-bust).
 
 ### 🚢 Одной кнопкой через Docker
 
@@ -51,8 +51,8 @@ docker run -p 3000:80 reezonly-space-openapi
 ```
 
 Что происходит внутри:
-- Stage `build`: `npm ci` (root и `tools/`), `npm run build` (сшивает 45 публичных методов), `npm run bundle`, `npm run build-docs`.
-- Stage `runtime`: Nginx раздаёт `docs/index.html` на `http://localhost:3000`, сырые спеки по путям `/bundles/complete-api.yaml` и `/space-platform-api.yaml`.
+- Stage `build`: `npm ci` (root и `tools/`), `npm run bundle` (сшивает 45 публичных методов в space-platform-api.yaml, симлинк для `/bundles/complete-api.yaml`), `npm run build-docs`.
+- Stage `runtime`: Nginx раздаёт `docs/index.html` и YAML по путям `/space-platform-api.yaml` и `/bundles/complete-api.yaml` (симлинк).
 
 Проверка локально: открыть `http://localhost:3000` в браузере или скачать YAML по прямым ссылкам.
 

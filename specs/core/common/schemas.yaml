@@ -203,12 +203,27 @@ components:
       properties:
         unix:
           type: integer
-          nullable: true
           example: 1730399460
         iso:
           type: string
-          nullable: true
           example: "2024-10-31T13:11:00+03:00"
+
+      # nullable via oneOf for redocly v1 compatibility
+      oneOf:
+        - type: object
+          properties:
+            unix:
+              type: integer
+              example: 1730399460
+            iso:
+              type: string
+              example: "2024-10-31T13:11:00+03:00"
+        - type: object
+          properties:
+            unix:
+              type: 'null'
+            iso:
+              type: 'null'
 
     # Import Status Model
     ImportStatus:
