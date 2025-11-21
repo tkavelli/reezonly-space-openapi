@@ -4,45 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reezonly Space Platform API - Try It Out</title>
-    <script src="https://cdn.jsdelivr.net/npm/redoc@latest/bundles/redoc.standalone.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@3/swagger-ui.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f5f5;
-        }
-        .navbar {
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
-        .navbar-brand {
-            font-size: 20px;
+        .topbar-brand {
+            font-size: 18px;
             font-weight: bold;
         }
-        .navbar-links {
+        .topbar-links {
             display: flex;
-            gap: 20px;
+            gap: 15px;
         }
-        .navbar-link {
+        .topbar-link {
             color: white;
             text-decoration: none;
             padding: 8px 16px;
             border-radius: 4px;
             transition: background 0.3s;
         }
-        .navbar-link:hover {
+        .topbar-link:hover {
             background: rgba(255,255,255,0.2);
         }
-        .navbar-link.active {
+        .topbar-link.active {
             background: rgba(255,255,255,0.3);
             font-weight: bold;
         }
-        .redoc-container {
+        .swagger-ui {
             max-width: 100%;
         }
         .cors-info {
@@ -51,21 +46,9 @@
             padding: 15px;
             margin: 20px;
             border-radius: 4px;
-            font-size: 14px;
+            font-size: 13px;
         }
         .cors-info strong {
-            display: block;
-            margin-bottom: 8px;
-        }
-        .cors-error {
-            background: #f8d7da;
-            border-left: 4px solid #dc3545;
-            padding: 15px;
-            margin: 20px;
-            border-radius: 4px;
-            display: none;
-        }
-        .cors-error strong {
             display: block;
             margin-bottom: 8px;
         }
@@ -73,118 +56,58 @@
             background: #f0f0f0;
             padding: 2px 6px;
             border-radius: 3px;
-            font-family: 'Monaco', 'Courier New', monospace;
+            font-family: monospace;
         }
     </style>
 </head>
 <body>
-    <div class="navbar">
-        <div class="navbar-brand">🚀 Reezonly Space Platform API</div>
-        <div class="navbar-links">
-            <a href="index.html" class="navbar-link">📖 ReDoc</a>
-            <a href="try.html" class="navbar-link active">⚡ Try It Out</a>
+    <div class="topbar">
+        <div class="topbar-brand">🚀 Reezonly Space Platform API</div>
+        <div class="topbar-links">
+            <a href="index.html" class="topbar-link">📖 ReDoc</a>
+            <a href="try.html" class="topbar-link active">⚡ Try It Out</a>
         </div>
-    </div>
-
-    <div class="cors-error" id="cors-error">
-        <strong>⚠️ CORS Error Detected</strong>
-        <p id="cors-error-message"></p>
-        <p style="margin-top: 10px; font-size: 13px;">
-            Backend needs to configure CORS. See setup instructions in the console or
-            <a href="#cors-setup">scroll down</a>.
-        </p>
     </div>
 
     <div class="cors-info">
-        <strong>ℹ️ How to Test API Endpoints</strong>
-        <p>Click "Try it out" button on any endpoint below to send a real API request.
-        Make sure your backend API is running and has CORS configured to accept requests from this domain.</p>
+        <strong>ℹ️ How to Test Endpoints</strong>
+        <p>Click <code>Try it out</code> button on any endpoint below to send real requests to the API.</p>
+        <p style="margin-top: 10px;"><strong>Note:</strong> Your backend API must have CORS enabled. See setup guide in repo: <code>CORS-SETUP.md</code></p>
     </div>
 
-    <div id="redoc-container" class="redoc-container"></div>
+    <div id="swagger-ui"></div>
 
-    <div class="cors-info" id="cors-setup" style="margin-top: 40px;">
-        <strong>🔧 Backend Setup: Enable CORS</strong>
-        <p>For "Try it out" to work, add these headers to your API responses:</p>
-        <div style="background: #f8f8f8; padding: 12px; margin: 10px 0; border-radius: 4px; overflow-x: auto;">
-            <code style="display: block; white-space: pre-wrap;">
-Access-Control-Allow-Origin: https://tkavelli.github.io
-Access-Control-Allow-Methods: GET, POST, PUT, DELETE, PATCH, OPTIONS
-Access-Control-Allow-Headers: Content-Type, Authorization, Accept-Language
-Access-Control-Allow-Credentials: true
-            </code>
-        </div>
-        <p style="margin-top: 10px;"><strong>PHP/Yii2 example:</strong></p>
-        <div style="background: #f8f8f8; padding: 12px; margin: 10px 0; border-radius: 4px; overflow-x: auto;">
-            <code style="display: block; white-space: pre-wrap;">
-// In your controller or middleware
-Yii::$app->response->headers->set('Access-Control-Allow-Origin', 'https://tkavelli.github.io');
-Yii::$app->response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-Yii::$app->response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept-Language');
-Yii::$app->response->headers->set('Access-Control-Allow-Credentials', 'true');
-
-// Handle OPTIONS preflight requests
-if (Yii::$app->request->method === 'OPTIONS') {
-    Yii::$app->response->statusCode = 200;
-    return;
-}
-            </code>
-        </div>
-    </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@3/swagger-ui-bundle.js"></script>
     <script>
-        // Monitor CORS errors
-        window.addEventListener('error', (event) => {
-            if (event.message && event.message.includes('CORS')) {
-                showCorsError(event.message);
-            }
-        });
-
-        // Intercept fetch to detect CORS errors
-        const originalFetch = window.fetch;
-        window.fetch = function(...args) {
-            return originalFetch.apply(this, args)
-                .catch(error => {
-                    if (error.message.includes('Failed to fetch') || error.type === 'opaque') {
-                        showCorsError('CORS request failed. Check network tab for details.');
-                    }
-                    throw error;
-                });
-        };
-
-        function showCorsError(message) {
-            const errorDiv = document.getElementById('cors-error');
-            const errorMsg = document.getElementById('cors-error-message');
-            errorMsg.textContent = message;
-            errorDiv.style.display = 'block';
-        }
-
-        // Load Redoc with OpenAPI spec
-        Redoc.init(
-            './space-platform-api.yaml',
-            {
-                scrollYOffset: 60,
-                theme: {
-                    colors: {
-                        primary: {main: '#667eea'},
-                    },
-                    typography: {
-                        fontSize: '14px',
-                        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-                    }
+        window.onload = () => {
+            window.ui = SwaggerUIBundle({
+                url: "./space-platform-api.yaml",
+                dom_id: '#swagger-ui',
+                presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIBundle.SwaggerUIStandalonePreset
+                ],
+                layout: "BaseLayout",
+                requestInterceptor: (request) => {
+                    console.log('[SwaggerUI Request]', request.method, request.url);
+                    return request;
                 },
-                tryItOutEnabled: true,
-                hideDownloadButton: false,
-            },
-            document.getElementById('redoc-container')
-        );
-
-        // Log to console
-        console.log('🚀 Reezonly Space Platform API - Try It Out');
-        console.log('📋 OpenAPI Spec: ../space-platform-api.yaml');
-        console.log('⚡ Try It Out is enabled - click "Try it out" on any endpoint to test');
-        console.log('🔧 If you see CORS errors, configure your backend API CORS headers');
-        console.log('📖 Setup instructions: scroll down to "Backend Setup: Enable CORS"');
+                responseInterceptor: (response) => {
+                    console.log('[SwaggerUI Response]', response.status);
+                    return response;
+                },
+                onComplete: () => {
+                    console.log('✅ Swagger UI loaded successfully');
+                    console.log('📚 Click "Try it out" on any endpoint to test the API');
+                },
+                onFailure: (err) => {
+                    console.error('❌ Failed to load API spec:', err);
+                    if (err.status === 404) {
+                        console.error('The OpenAPI spec file was not found at: ./space-platform-api.yaml');
+                    }
+                }
+            })
+        }
     </script>
 </body>
 </html>
