@@ -40,3 +40,10 @@ if (!html.includes('fonts.css')) {
     fs.writeFileSync(indexPath, html, 'utf8');
     console.log('✅ Added fonts.css to docs/index.html');
 }
+
+// Add favicon
+if (!html.includes('favicon-32x32.png')) {
+    html = html.replace('</head>', '  <link rel="icon" type="image/png" href="https://lms.reezonly.ru/favicon/favicon-32x32.png">\n</head>');
+    fs.writeFileSync(indexPath, html, 'utf8');
+    console.log('✅ Added favicon to docs/index.html');
+}
