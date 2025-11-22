@@ -7,7 +7,6 @@ extends:
 
 theme:
   openapi:
-    favicon: https://lms.reezonly.ru/favicon/favicon-32x32.png
     logo:
       src: https://lms.reezonly.ru/img/logo/logo-lms.svg
       altText: Reezonly LMS

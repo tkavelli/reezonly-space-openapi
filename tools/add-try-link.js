@@ -42,8 +42,8 @@ if (!html.includes('fonts.css')) {
 }
 
 // Add favicon
-if (!html.includes('favicon-32x32.png')) {
-    html = html.replace('</head>', '  <link rel="icon" type="image/png" href="https://lms.reezonly.ru/favicon/favicon-32x32.png">\n</head>');
+if (!html.includes('favicon.png')) {
+    html = html.replace('</head>', '  <link rel="icon" type="image/png" href="favicon.png">\n</head>');
     fs.writeFileSync(indexPath, html, 'utf8');
     console.log('✅ Added favicon to docs/index.html');
 }
