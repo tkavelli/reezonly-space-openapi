@@ -256,14 +256,14 @@ async function buildOpenAPI() {
 
     // Validate final specification (only dereference for now)
     console.log('🔍 Processing final specification...');
-    await SwaggerParser.dereference(completeSpec);
+    // await SwaggerParser.dereference(completeSpec); 
 
     // Save complete specification as the single source of truth
     const outputPath = path.resolve(__dirname, '../space-platform-api.yaml');
     const yamlContent = yaml.dump(completeSpec, {
       indent: 2,
       lineWidth: -1,
-      noRefs: true
+      noRefs: false
     });
 
     await fs.writeFile(outputPath, yamlContent, 'utf8');

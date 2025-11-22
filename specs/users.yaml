@@ -66,17 +66,7 @@ paths:
               schema:
                 allOf:
                   - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          pagination:
-                            $ref: './core/common/schemas.yaml#/components/schemas/PaginationMeta'
-                          items:
-                            type: array
-                            items:
-                              $ref: './core/common/schemas.yaml#/components/schemas/User'
+                  - $ref: '#/components/schemas/UserList'
               examples:
                 default:
                   summary: Пагинированный список пользователей
@@ -122,17 +112,7 @@ paths:
               schema:
                 allOf:
                   - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          pagination:
-                            $ref: './core/common/schemas.yaml#/components/schemas/PaginationMeta'
-                          items:
-                            type: array
-                            items:
-                              $ref: './core/common/schemas.yaml#/components/schemas/User'
+                  - $ref: '#/components/schemas/UserList'
               examples:
                 default:
                   summary: Только пользователи с ролями админа
@@ -1144,12 +1124,15 @@ components:
       type: object
       properties:
         data:
-          type: array
-          items:
-            $ref: '#/components/schemas/User'
-          description: Массив пользователей
-        meta:
-          $ref: './core/common/schemas.yaml#/components/schemas/PaginationMeta'
+          type: object
+          properties:
+            pagination:
+              $ref: './core/common/schemas.yaml#/components/schemas/PaginationMeta'
+            items:
+              type: array
+              items:
+                $ref: './core/common/schemas.yaml#/components/schemas/User'
+          description: Объект данных с пагинацией и списком
 
     # Специализированные схемы
     UserImportStatus:
