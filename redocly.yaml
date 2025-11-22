@@ -8,7 +8,7 @@ extends:
 theme:
   openapi:
     logo:
-      src: https://lms.reezonly.ru/img/logo/logo-lms.svg
+      src: docs/img/logo.svg
       altText: Reezonly LMS
       gutter: 16px
       maxHeight: 40px
