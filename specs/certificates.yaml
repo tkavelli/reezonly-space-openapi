@@ -110,12 +110,16 @@ paths:
                         properties:
                           id:
                             type: integer
+                            example: 2
                           name:
                             type: string
+                            example: "Gold Award"
                           description:
                             type: string
+                            example: "Golden template for VIPs"
                           template_html:
                             type: string
+                            example: "<html><body>...</body></html>"
                           variables:
                             type: array
                             items:
@@ -123,16 +127,22 @@ paths:
                               properties:
                                 name:
                                   type: string
+                                  example: "student_name"
                                 type:
                                   type: string
+                                  example: "string"
                                 description:
                                   type: string
+                                  example: "Full name of the student"
                                 required:
                                   type: boolean
+                                  example: true
                           preview_url:
                             type: string
+                            example: "https://cdn.space/templates/2/preview.png"
                           active:
                             type: boolean
+                            example: true
               examples:
                 template_detail:
                   summary: Детальный шаблон
@@ -383,22 +393,27 @@ paths:
                   type: integer
                   minimum: 1
                   description: ID пользователя
+                  example: 123
                 course_id:
                   type: integer
                   minimum: 1
                   description: ID курса
+                  example: 456
                 template_id:
                   type: integer
                   minimum: 1
                   description: ID шаблона сертификата
+                  example: 2
                 issue_date:
                   type: string
                   format: date
                   description: Дата выдачи (по умолчанию текущая)
+                  example: "2024-01-15"
                 expires_at:
                   type: string
                   format: date
                   description: Дата истечения (необязательно)
+                  example: "2025-01-15"
                 custom_data:
                   type: object
                   description: Дополнительные данные для шаблона
@@ -548,21 +563,26 @@ paths:
               properties:
                 search:
                   type: string
+                  example: "ivan"
                 course_id:
                   type: integer
                   minimum: 1
+                  example: 456
                 user_id:
                   type: integer
                   minimum: 1
+                  example: 123
                 page:
                   type: integer
                   minimum: 1
                   default: 1
+                  example: 1
                 per-page:
                   type: integer
                   minimum: 1
                   maximum: 500
                   default: 50
+                  example: 50
                 sort:
                   type: string
                   example: -created_at

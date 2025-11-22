@@ -236,6 +236,7 @@ paths:
                                   type: string
                                   format: date-time
                                   example: '2024-01-15T10:30:00Z'
+                        description: Объект данных с пагинацией и списком
               examples:
                 default:
                   summary: Пагинированный список пользователей
@@ -407,6 +408,7 @@ paths:
                                   type: string
                                   format: date-time
                                   example: '2024-01-15T10:30:00Z'
+                        description: Объект данных с пагинацией и списком
               examples:
                 default:
                   summary: Только пользователи с ролями админа
@@ -2994,6 +2996,7 @@ paths:
                         - 'null'
                       minimum: 1
                       description: ID родительской группы
+                      example: 5
                     user_ids:
                       type: array
                       items:
@@ -3184,6 +3187,7 @@ paths:
                         - 'null'
                       minimum: 1
                       description: ID родительской группы
+                      example: 5
                     user_ids:
                       type: array
                       items:
@@ -3512,11 +3516,13 @@ paths:
                             name:
                               type: string
                               description: Название группы
+                              example: Sales
                             parent_id:
                               type:
                                 - integer
                                 - 'null'
                               description: ID родительской группы
+                              example: null
                             level:
                               type: integer
                               description: Уровень вложенности (0=корневой)
@@ -4135,12 +4141,16 @@ paths:
                         properties:
                           id:
                             type: integer
+                            example: 2
                           name:
                             type: string
+                            example: Gold Award
                           description:
                             type: string
+                            example: Golden template for VIPs
                           template_html:
                             type: string
+                            example: <html><body>...</body></html>
                           variables:
                             type: array
                             items:
@@ -4148,16 +4158,22 @@ paths:
                               properties:
                                 name:
                                   type: string
+                                  example: student_name
                                 type:
                                   type: string
+                                  example: string
                                 description:
                                   type: string
+                                  example: Full name of the student
                                 required:
                                   type: boolean
+                                  example: true
                           preview_url:
                             type: string
+                            example: https://cdn.space/templates/2/preview.png
                           active:
                             type: boolean
+                            example: true
               examples:
                 template_detail:
                   summary: Детальный шаблон
@@ -4599,22 +4615,27 @@ paths:
                   type: integer
                   minimum: 1
                   description: ID пользователя
+                  example: 123
                 course_id:
                   type: integer
                   minimum: 1
                   description: ID курса
+                  example: 456
                 template_id:
                   type: integer
                   minimum: 1
                   description: ID шаблона сертификата
+                  example: 2
                 issue_date:
                   type: string
                   format: date
                   description: Дата выдачи (по умолчанию текущая)
+                  example: '2024-01-15'
                 expires_at:
                   type: string
                   format: date
                   description: Дата истечения (необязательно)
+                  example: '2025-01-15'
                 custom_data:
                   type: object
                   description: Дополнительные данные для шаблона
@@ -4757,21 +4778,26 @@ paths:
               properties:
                 search:
                   type: string
+                  example: ivan
                 course_id:
                   type: integer
                   minimum: 1
+                  example: 456
                 user_id:
                   type: integer
                   minimum: 1
+                  example: 123
                 page:
                   type: integer
                   minimum: 1
                   default: 1
+                  example: 1
                 per-page:
                   type: integer
                   minimum: 1
                   maximum: 500
                   default: 50
+                  example: 50
                 sort:
                   type: string
                   example: '-created_at'
@@ -6105,22 +6131,29 @@ paths:
                                   type: integer
                                   minimum: 0
                                   maximum: 100
+                                  example: 72
                                 user:
                                   type: object
                                   properties:
                                     id:
                                       type: integer
+                                      example: 215
                                     name:
                                       type: string
+                                      example: Георгий
                                     email:
                                       type: string
                                       format: email
+                                      example: user@example.com
                                     phone:
                                       type: string
+                                      example: '+79999999952'
                                     department:
                                       type: string
+                                      example: Отдел разработки
                                     position:
                                       type: string
+                                      example: Директор по продукту
                           pagination:
                             type: object
                             properties:
@@ -6475,93 +6508,71 @@ components:
       type: object
       properties:
         data:
-          type: array
-          items:
-            type: object
-            properties:
-              id:
-                type: integer
-                description: Уникальный идентификатор пользователя
-                example: 123
-              username:
-                type: string
-                description: Имя пользователя
-                example: Иван Петров
-              email:
-                type: string
-                format: email
-                description: Email пользователя
-                example: ivan.petrov@example.com
-              role:
-                type: string
-                description: Роль пользователя
-                example: student
-              status:
-                type: string
-                description: Статус пользователя
-                enum:
-                  - active
-                  - inactive
-                  - blocked
-                example: active
-              department:
-                type: string
-                description: Отдел
-                example: IT отдел
-              position:
-                type: string
-                description: Должность
-                example: Разработчик
-              phone:
-                type: string
-                description: Телефон
-                example: +7 (999) 123-45-67
-              photo:
-                type: string
-                format: uri
-                description: URL фотографии пользователя (S3)
-                example: https://s3.amazonaws.com/bucket/users/photos/123.jpg
-              created_at:
-                type: string
-                format: date-time
-                description: Дата создания пользователя
-                example: '2025-01-15T10:30:00Z'
-              updated_at:
-                type: string
-                format: date-time
-                description: Дата последнего обновления
-                example: '2025-01-15T10:30:00Z'
-              last_login_at:
-                type: string
-                format: date-time
-                description: Дата последнего входа
-                example: '2025-01-16T09:15:00Z'
-              email_verified:
-                type: boolean
-                description: Подтвержден ли email
-                example: true
-              custom_fields:
-                type: object
-                description: Дополнительные поля пользователя
-                example:
-                  city: Москва
-                  experience: 5 лет
-          description: Массив пользователей
-        meta:
           type: object
           properties:
-            total:
-              type: integer
-              description: Общее количество элементов
-              example: 150
-            page:
-              type: integer
-              description: Текущая страница
-              example: 1
-            per-page:
-              type: integer
-              description: Элементов на странице
-              example: 20
+            pagination:
+              type: object
+              properties:
+                total:
+                  type: integer
+                  description: Общее количество элементов
+                  example: 150
+                page:
+                  type: integer
+                  description: Текущая страница
+                  example: 1
+                per-page:
+                  type: integer
+                  description: Элементов на странице
+                  example: 20
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 137
+                  email:
+                    type: string
+                    format: email
+                    example: user@example.com
+                  name:
+                    type: string
+                    example: Иван Иванов
+                  role:
+                    type: string
+                    enum:
+                      - admin
+                      - editor
+                      - curator
+                      - student
+                    x-enumDescriptions:
+                      admin: Администратор (полный доступ)
+                      editor: Контент-редактор
+                      curator: Куратор/методист
+                      student: Ученик/слушатель
+                    example: student
+                  status:
+                    type: string
+                    enum:
+                      - active
+                      - inactive
+                      - blocked
+                    x-enumDescriptions:
+                      active: Активный пользователь
+                      inactive: Неактивный (архив/черновик)
+                      blocked: Заблокирован (без доступа)
+                    example: active
+                  created_at:
+                    type: string
+                    format: date-time
+                    example: '2024-01-15T10:30:00Z'
+                  updated_at:
+                    type: string
+                    format: date-time
+                    example: '2024-01-15T10:30:00Z'
+          description: Объект данных с пагинацией и списком
     UserImportStatus:
       type: object
       properties:
@@ -6600,21 +6611,26 @@ components:
               row:
                 type: integer
                 description: Номер строки с ошибкой
+                example: 2
               field:
                 type: string
                 description: Поле с ошибкой
+                example: email
               message:
                 type: string
                 description: Описание ошибки
+                example: Invalid email format
           description: Массив ошибок валидации
         created_at:
           type: string
           format: date-time
           description: Время создания задачи
+          example: '2025-02-10T10:00:00Z'
         completed_at:
           type: string
           format: date-time
           description: Время завершения задачи
+          example: '2025-02-10T10:05:00Z'
     ImportReport:
       type: object
       description: Итоговый отчёт завершённого импорта пользователей
@@ -7043,11 +7059,13 @@ components:
         name:
           type: string
           description: Название группы
+          example: Sales
         parent_id:
           type:
             - integer
             - 'null'
           description: ID родительской группы
+          example: null
         level:
           type: integer
           description: Уровень вложенности (0=корневой)
@@ -7157,6 +7175,7 @@ components:
                 - 'null'
               minimum: 1
               description: ID родительской группы
+              example: 5
             user_ids:
               type: array
               items:
@@ -7342,20 +7361,7 @@ components:
           type: boolean
           example: true
         meta:
-          type: object
-          properties:
-            total:
-              type: integer
-              description: Общее количество элементов
-              example: 150
-            page:
-              type: integer
-              description: Текущая страница
-              example: 1
-            per-page:
-              type: integer
-              description: Элементов на странице
-              example: 20
+          $ref: '#/components/schemas/PaginationMeta'
     ErrorResponse:
       type: object
       properties:
@@ -7446,79 +7452,11 @@ components:
           example: '2024-12-15T15:30:00Z'
     CertificateDetail:
       allOf:
-        - type: object
-          properties:
-            id:
-              type: integer
-              example: 1
-            title:
-              type: string
-              example: Сертификат о прохождении курса
-            description:
-              type: string
-              example: Выдан за успешное завершение курса
-            issued_at:
-              type: string
-              format: date-time
-              example: '2024-01-15T10:30:00Z'
-            status:
-              type: string
-              enum:
-                - issued
-                - revoked
-                - expired
-              x-enumDescriptions:
-                issued: Сертификат выдан
-                revoked: Сертификат отозван
-                expired: Срок действия истёк
-              example: issued
+        - $ref: '#/components/schemas/Certificate'
         - type: object
           properties:
             user:
-              type: object
-              properties:
-                id:
-                  type: integer
-                  example: 137
-                email:
-                  type: string
-                  format: email
-                  example: user@example.com
-                name:
-                  type: string
-                  example: Иван Иванов
-                role:
-                  type: string
-                  enum:
-                    - admin
-                    - editor
-                    - curator
-                    - student
-                  x-enumDescriptions:
-                    admin: Администратор (полный доступ)
-                    editor: Контент-редактор
-                    curator: Куратор/методист
-                    student: Ученик/слушатель
-                  example: student
-                status:
-                  type: string
-                  enum:
-                    - active
-                    - inactive
-                    - blocked
-                  x-enumDescriptions:
-                    active: Активный пользователь
-                    inactive: Неактивный (архив/черновик)
-                    blocked: Заблокирован (без доступа)
-                  example: active
-                created_at:
-                  type: string
-                  format: date-time
-                  example: '2024-01-15T10:30:00Z'
-                updated_at:
-                  type: string
-                  format: date-time
-                  example: '2024-01-15T10:30:00Z'
+              $ref: '#/components/schemas/User'
             course:
               type: object
               properties:
@@ -7529,37 +7467,7 @@ components:
                   type: string
                   example: Data Analytics 101
             template:
-              type: object
-              properties:
-                id:
-                  type: integer
-                  example: 3
-                name:
-                  type: string
-                  description: Название шаблона сертификата
-                  example: Standard Completion
-                description:
-                  type: string
-                  description: Краткое описание шаблона
-                  example: Базовый шаблон для завершения курса
-                file_url:
-                  type: string
-                  format: uri
-                  description: Ссылка на файл шаблона (PDF/DOCX)
-                  example: https://cdn.space.com/cert-templates/standard.pdf
-                preview_url:
-                  type: string
-                  format: uri
-                  description: Превью изображения шаблона
-                  example: https://cdn.space.com/cert-templates/standard.png
-                created_at:
-                  type: string
-                  format: date-time
-                  example: '2024-12-01T10:00:00Z'
-                updated_at:
-                  type: string
-                  format: date-time
-                  example: '2024-12-15T15:30:00Z'
+              $ref: '#/components/schemas/CertificateTemplate'
             download_url:
               type: string
               format: uri
@@ -7684,68 +7592,7 @@ components:
           example: 501
     CourseDetail:
       allOf:
-        - type: object
-          properties:
-            id:
-              type: integer
-              example: 101
-            title:
-              type: string
-              example: Онбординг
-            description:
-              type: string
-              example: Базовый курс для новых сотрудников
-            status:
-              type: string
-              enum:
-                - draft
-                - active
-                - archived
-              example: active
-            price:
-              type: number
-              format: float
-              example: 0
-            duration:
-              type: string
-              description: Продолжительность в удобном формате
-              example: 2h
-            level:
-              type: string
-              enum:
-                - beginner
-                - intermediate
-                - advanced
-              example: beginner
-            category:
-              type: object
-              properties:
-                id:
-                  type: integer
-                  example: 5
-                name:
-                  type: string
-                  example: Корпоративное обучение
-            instructor:
-              type: object
-              properties:
-                id:
-                  type: integer
-                  example: 77
-                name:
-                  type: string
-                  example: Анна Смирнова
-                avatar_url:
-                  type: string
-                  format: uri
-                  example: https://cdn.space/instructors/77.png
-            thumbnail_url:
-              type: string
-              format: uri
-              example: https://cdn.space/courses/101.png
-            lms_id:
-              type: integer
-              example: 501
+        - $ref: '#/components/schemas/Course'
         - type: object
           properties:
             syllabus:
@@ -7877,26 +7724,7 @@ components:
         application/json:
           schema:
             allOf:
-              - type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  meta:
-                    type: object
-                    properties:
-                      total:
-                        type: integer
-                        description: Общее количество элементов
-                        example: 150
-                      page:
-                        type: integer
-                        description: Текущая страница
-                        example: 1
-                      per-page:
-                        type: integer
-                        description: Элементов на странице
-                        example: 20
+              - $ref: '#/components/schemas/SuccessResponse'
               - type: object
                 properties:
                   message:
@@ -7908,26 +7736,7 @@ components:
         application/json:
           schema:
             allOf:
-              - type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  meta:
-                    type: object
-                    properties:
-                      total:
-                        type: integer
-                        description: Общее количество элементов
-                        example: 150
-                      page:
-                        type: integer
-                        description: Текущая страница
-                        example: 1
-                      per-page:
-                        type: integer
-                        description: Элементов на странице
-                        example: 20
+              - $ref: '#/components/schemas/SuccessResponse'
               - type: object
                 properties:
                   message:
@@ -7939,226 +7748,50 @@ components:
         application/json:
           schema:
             allOf:
-              - type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  meta:
-                    type: object
-                    properties:
-                      total:
-                        type: integer
-                        description: Общее количество элементов
-                        example: 150
-                      page:
-                        type: integer
-                        description: Текущая страница
-                        example: 1
-                      per-page:
-                        type: integer
-                        description: Элементов на странице
-                        example: 20
+              - $ref: '#/components/schemas/SuccessResponse'
               - type: object
                 properties:
                   data:
                     type: object
                     properties:
                       pagination:
-                        type: object
-                        properties:
-                          total:
-                            type: integer
-                            description: Общее количество элементов
-                            example: 150
-                          page:
-                            type: integer
-                            description: Текущая страница
-                            example: 1
-                          per-page:
-                            type: integer
-                            description: Элементов на странице
-                            example: 20
+                        $ref: '#/components/schemas/PaginationMeta'
                       items:
                         type: array
                         items:
-                          type: object
-                          properties:
-                            id:
-                              type: integer
-                              example: 137
-                            email:
-                              type: string
-                              format: email
-                              example: user@example.com
-                            name:
-                              type: string
-                              example: Иван Иванов
-                            role:
-                              type: string
-                              enum:
-                                - admin
-                                - editor
-                                - curator
-                                - student
-                              x-enumDescriptions:
-                                admin: Администратор (полный доступ)
-                                editor: Контент-редактор
-                                curator: Куратор/методист
-                                student: Ученик/слушатель
-                              example: student
-                            status:
-                              type: string
-                              enum:
-                                - active
-                                - inactive
-                                - blocked
-                              x-enumDescriptions:
-                                active: Активный пользователь
-                                inactive: Неактивный (архив/черновик)
-                                blocked: Заблокирован (без доступа)
-                              example: active
-                            created_at:
-                              type: string
-                              format: date-time
-                              example: '2024-01-15T10:30:00Z'
-                            updated_at:
-                              type: string
-                              format: date-time
-                              example: '2024-01-15T10:30:00Z'
+                          $ref: '#/components/schemas/User'
     GroupList:
       description: Список групп успешно получен
       content:
         application/json:
           schema:
             allOf:
-              - type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  meta:
-                    type: object
-                    properties:
-                      total:
-                        type: integer
-                        description: Общее количество элементов
-                        example: 150
-                      page:
-                        type: integer
-                        description: Текущая страница
-                        example: 1
-                      per-page:
-                        type: integer
-                        description: Элементов на странице
-                        example: 20
+              - $ref: '#/components/schemas/SuccessResponse'
               - type: object
                 properties:
                   data:
                     type: array
                     items:
-                      type: object
-                      properties:
-                        id:
-                          type: integer
-                          example: 1
-                        name:
-                          type: string
-                          example: Отдел продаж
-                        description:
-                          type: string
-                          example: Сотрудники отдела продаж
-                        parent_id:
-                          oneOf:
-                            - type: integer
-                              minimum: 1
-                            - type: 'null'
-                          example: null
-                        members_count:
-                          type: integer
-                          example: 25
-                        hierarchy_level:
-                          type: integer
-                          example: 0
-                        created_at:
-                          type: string
-                          format: date-time
-                          example: '2024-01-15T10:30:00Z'
+                      $ref: '#/components/schemas/Group'
     CertificateList:
       description: Список сертификатов успешно получен
       content:
         application/json:
           schema:
             allOf:
-              - type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  meta:
-                    type: object
-                    properties:
-                      total:
-                        type: integer
-                        description: Общее количество элементов
-                        example: 150
-                      page:
-                        type: integer
-                        description: Текущая страница
-                        example: 1
-                      per-page:
-                        type: integer
-                        description: Элементов на странице
-                        example: 20
+              - $ref: '#/components/schemas/SuccessResponse'
               - type: object
                 properties:
                   data:
                     type: array
                     items:
-                      type: object
-                      properties:
-                        id:
-                          type: integer
-                          example: 1
-                        title:
-                          type: string
-                          example: Сертификат о прохождении курса
-                        description:
-                          type: string
-                          example: Выдан за успешное завершение курса
-                        issued_at:
-                          type: string
-                          format: date-time
-                          example: '2024-01-15T10:30:00Z'
-                        status:
-                          type: string
-                          enum:
-                            - issued
-                            - revoked
-                            - expired
-                          x-enumDescriptions:
-                            issued: Сертификат выдан
-                            revoked: Сертификат отозван
-                            expired: Срок действия истёк
-                          example: issued
+                      $ref: '#/components/schemas/Certificate'
     BadRequest:
       description: Ошибка в запросе (неверные параметры)
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              success:
-                type: boolean
-                example: false
-              errors:
-                type: object
-                description: Ошибки валидации по полям
-                example:
-                  email:
-                    - Email already taken.
-                  password:
-                    - Password minimum 6 characters.
+            $ref: '#/components/schemas/ErrorResponse'
           example:
             success: false
             errors:
@@ -8171,19 +7804,7 @@ components:
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              success:
-                type: boolean
-                example: false
-              errors:
-                type: object
-                description: Ошибки валидации по полям
-                example:
-                  email:
-                    - Email already taken.
-                  password:
-                    - Password minimum 6 characters.
+            $ref: '#/components/schemas/ErrorResponse'
           example:
             success: false
             errors:
@@ -8194,19 +7815,7 @@ components:
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              success:
-                type: boolean
-                example: false
-              errors:
-                type: object
-                description: Ошибки валидации по полям
-                example:
-                  email:
-                    - Email already taken.
-                  password:
-                    - Password minimum 6 characters.
+            $ref: '#/components/schemas/ErrorResponse'
           example:
             success: false
             errors:
@@ -8217,19 +7826,7 @@ components:
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              success:
-                type: boolean
-                example: false
-              errors:
-                type: object
-                description: Ошибки валидации по полям
-                example:
-                  email:
-                    - Email already taken.
-                  password:
-                    - Password minimum 6 characters.
+            $ref: '#/components/schemas/ErrorResponse'
           example:
             success: false
             errors:
@@ -8240,19 +7837,7 @@ components:
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              success:
-                type: boolean
-                example: false
-              errors:
-                type: object
-                description: Ошибки валидации по полям
-                example:
-                  email:
-                    - Email already taken.
-                  password:
-                    - Password minimum 6 characters.
+            $ref: '#/components/schemas/ErrorResponse'
           example:
             success: false
             errors:
@@ -8263,19 +7848,7 @@ components:
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              success:
-                type: boolean
-                example: false
-              errors:
-                type: object
-                description: Ошибки валидации по полям
-                example:
-                  email:
-                    - Email already taken.
-                  password:
-                    - Password minimum 6 characters.
+            $ref: '#/components/schemas/ErrorResponse'
           example:
             success: false
             errors:
@@ -8292,19 +7865,7 @@ components:
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              success:
-                type: boolean
-                example: false
-              errors:
-                type: object
-                description: Ошибки валидации по полям
-                example:
-                  email:
-                    - Email already taken.
-                  password:
-                    - Password minimum 6 characters.
+            $ref: '#/components/schemas/ErrorResponse'
           example:
             success: false
             errors:

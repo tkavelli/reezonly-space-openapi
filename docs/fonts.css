@@ -27,3 +27,8 @@
 body, h1, h2, h3, h4, h5, h6, .sc-hwkwBN, .sc-kNOymR, .sc-dYwGCk {
     font-family: 'StyreneALC', "Inter", "Helvetica Neue", Arial, sans-serif !important;
 }
+
+/* Force sidebar background */
+.menu-content {
+    background-color: #eff1f8 !important;
+}

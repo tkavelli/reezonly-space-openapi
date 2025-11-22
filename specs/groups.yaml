@@ -1060,9 +1060,11 @@ components:
         name:
           type: string
           description: Название группы
+          example: "Sales"
         parent_id:
           type: [integer, 'null']
           description: ID родительской группы
+          example: null
         level:
           type: integer
           description: Уровень вложенности (0=корневой)
@@ -1129,6 +1131,7 @@ components:
               type: [integer, 'null']
               minimum: 1
               description: ID родительской группы
+              example: 5
             user_ids:
               type: array
               items:

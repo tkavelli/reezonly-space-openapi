@@ -1169,21 +1169,26 @@ components:
               row:
                 type: integer
                 description: Номер строки с ошибкой
+                example: 2
               field:
                 type: string
                 description: Поле с ошибкой
+                example: "email"
               message:
                 type: string
                 description: Описание ошибки
+                example: "Invalid email format"
           description: Массив ошибок валидации
         created_at:
           type: string
           format: date-time
           description: Время создания задачи
+          example: "2025-02-10T10:00:00Z"
         completed_at:
           type: string
           format: date-time
           description: Время завершения задачи
+          example: "2025-02-10T10:05:00Z"
 
     ImportReport:
       type: object
