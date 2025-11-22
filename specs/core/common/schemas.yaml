@@ -199,31 +199,14 @@ components:
 
     # Date value with unix and iso
     DateValue:
-      type: object
+      type: [object, 'null']
       properties:
         unix:
-          type: integer
+          type: [integer, 'null']
           example: 1730399460
         iso:
-          type: string
+          type: [string, 'null']
           example: "2024-10-31T13:11:00+03:00"
-
-      # nullable via oneOf for redocly v1 compatibility
-      oneOf:
-        - type: object
-          properties:
-            unix:
-              type: integer
-              example: 1730399460
-            iso:
-              type: string
-              example: "2024-10-31T13:11:00+03:00"
-        - type: object
-          properties:
-            unix:
-              type: 'null'
-            iso:
-              type: 'null'
 
     # Import Status Model
     ImportStatus:

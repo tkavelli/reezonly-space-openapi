@@ -882,8 +882,7 @@ paths:
                                   type: string
                                   example: Course completion
                                 description:
-                                  type: string
-                                  nullable: true
+                                  type: [string, 'null']
                                   example: "Выдаётся за прохождение курса"
               examples:
                 certificate_types:
@@ -939,8 +938,7 @@ paths:
                                   type: string
                                   example: Имя пользователя
                                 description:
-                                  type: string
-                                  nullable: true
+                                  type: [string, 'null']
                                   example: "Отображается на сертификате"
                                 required:
                                   type: boolean

@@ -972,17 +972,13 @@ components:
           description: Тип группы (1=гостевая, 2=авторизованных, 9=по умолчанию)
           example: 2
         parent_id:
-          oneOf:
-            - type: integer
-              minimum: 1
-            - type: 'null'
+          type: [integer, 'null']
+          minimum: 1
           description: ID родительской группы
           example: null
         image:
-          oneOf:
-            - type: string
-              format: uri
-            - type: 'null'
+          type: [string, 'null']
+          format: uri
           description: URL изображения группы
           example: "https://s3.reezonly.com/groups/it-dept.jpg"
         created_at:
@@ -1002,17 +998,15 @@ components:
         - type: object
           properties:
             parent:
-              oneOf:
-                - type: object
-                  description: Информация о родительской группе
-                  properties:
-                    id:
-                      type: integer
-                      example: 1
-                    name:
-                      type: string
-                      example: "IT Department"
-                - type: 'null'
+              type: [object, 'null']
+              description: Информация о родительской группе
+              properties:
+                id:
+                  type: integer
+                  example: 1
+                name:
+                  type: string
+                  example: "IT Department"
     GroupDetail:
       allOf:
         - $ref: '#/components/schemas/Group'
@@ -1067,9 +1061,7 @@ components:
           type: string
           description: Название группы
         parent_id:
-          oneOf:
-            - type: integer
-            - type: 'null'
+          type: [integer, 'null']
           description: ID родительской группы
         level:
           type: integer
@@ -1100,10 +1092,8 @@ components:
           description: Описание группы (опционально)
           example: "Отдел маркетинга и продвижения"
         parent_id:
-          oneOf:
-            - type: integer
-              minimum: 1
-            - type: 'null'
+          type: [integer, 'null']
+          minimum: 1
           description: |
             ID родительской группы:
             - `null` для корневой группы
@@ -1136,10 +1126,8 @@ components:
               description: Описание группы
               example: "Группа поддержки"
             parent_id:
-              oneOf:
-                - type: integer
-                  minimum: 1
-                - type: 'null'
+              type: [integer, 'null']
+              minimum: 1
               description: ID родительской группы
             user_ids:
               type: array

@@ -2476,17 +2476,17 @@ paths:
                                       description: Тип группы (1=гостевая, 2=авторизованных, 9=по умолчанию)
                                       example: 2
                                     parent_id:
-                                      oneOf:
-                                        - type: integer
-                                          minimum: 1
-                                        - type: 'null'
+                                      type:
+                                        - integer
+                                        - 'null'
+                                      minimum: 1
                                       description: ID родительской группы
                                       example: null
                                     image:
-                                      oneOf:
-                                        - type: string
-                                          format: uri
-                                        - type: 'null'
+                                      type:
+                                        - string
+                                        - 'null'
+                                      format: uri
                                       description: URL изображения группы
                                       example: https://s3.reezonly.com/groups/it-dept.jpg
                                     created_at:
@@ -2502,17 +2502,17 @@ paths:
                                 - type: object
                                   properties:
                                     parent:
-                                      oneOf:
-                                        - type: object
-                                          description: Информация о родительской группе
-                                          properties:
-                                            id:
-                                              type: integer
-                                              example: 1
-                                            name:
-                                              type: string
-                                              example: IT Department
-                                        - type: 'null'
+                                      type:
+                                        - object
+                                        - 'null'
+                                      description: Информация о родительской группе
+                                      properties:
+                                        id:
+                                          type: integer
+                                          example: 1
+                                        name:
+                                          type: string
+                                          example: IT Department
               examples:
                 groups_list:
                   summary: Список групп с пагинацией
@@ -2687,17 +2687,17 @@ paths:
                                     description: Тип группы (1=гостевая, 2=авторизованных, 9=по умолчанию)
                                     example: 2
                                   parent_id:
-                                    oneOf:
-                                      - type: integer
-                                        minimum: 1
-                                      - type: 'null'
+                                    type:
+                                      - integer
+                                      - 'null'
+                                    minimum: 1
                                     description: ID родительской группы
                                     example: null
                                   image:
-                                    oneOf:
-                                      - type: string
-                                        format: uri
-                                      - type: 'null'
+                                    type:
+                                      - string
+                                      - 'null'
+                                    format: uri
                                     description: URL изображения группы
                                     example: https://s3.reezonly.com/groups/it-dept.jpg
                                   created_at:
@@ -2804,17 +2804,17 @@ paths:
                                               description: Тип группы (1=гостевая, 2=авторизованных, 9=по умолчанию)
                                               example: 2
                                             parent_id:
-                                              oneOf:
-                                                - type: integer
-                                                  minimum: 1
-                                                - type: 'null'
+                                              type:
+                                                - integer
+                                                - 'null'
+                                              minimum: 1
                                               description: ID родительской группы
                                               example: null
                                             image:
-                                              oneOf:
-                                                - type: string
-                                                  format: uri
-                                                - type: 'null'
+                                              type:
+                                                - string
+                                                - 'null'
+                                              format: uri
                                               description: URL изображения группы
                                               example: https://s3.reezonly.com/groups/it-dept.jpg
                                             created_at:
@@ -2830,17 +2830,17 @@ paths:
                                         - type: object
                                           properties:
                                             parent:
-                                              oneOf:
-                                                - type: object
-                                                  description: Информация о родительской группе
-                                                  properties:
-                                                    id:
-                                                      type: integer
-                                                      example: 1
-                                                    name:
-                                                      type: string
-                                                      example: IT Department
-                                                - type: 'null'
+                                              type:
+                                                - object
+                                                - 'null'
+                                              description: Информация о родительской группе
+                                              properties:
+                                                id:
+                                                  type: integer
+                                                  example: 1
+                                                name:
+                                                  type: string
+                                                  example: IT Department
                                   rules:
                                     type: array
                                     description: Правила доступа группы
@@ -2955,10 +2955,10 @@ paths:
                       description: Описание группы (опционально)
                       example: Отдел маркетинга и продвижения
                     parent_id:
-                      oneOf:
-                        - type: integer
-                          minimum: 1
-                        - type: 'null'
+                      type:
+                        - integer
+                        - 'null'
+                      minimum: 1
                       description: |
                         ID родительской группы:
                         - `null` для корневой группы
@@ -2989,10 +2989,10 @@ paths:
                       description: Описание группы
                       example: Группа поддержки
                     parent_id:
-                      oneOf:
-                        - type: integer
-                          minimum: 1
-                        - type: 'null'
+                      type:
+                        - integer
+                        - 'null'
+                      minimum: 1
                       description: ID родительской группы
                     user_ids:
                       type: array
@@ -3145,10 +3145,10 @@ paths:
                       description: Описание группы (опционально)
                       example: Отдел маркетинга и продвижения
                     parent_id:
-                      oneOf:
-                        - type: integer
-                          minimum: 1
-                        - type: 'null'
+                      type:
+                        - integer
+                        - 'null'
+                      minimum: 1
                       description: |
                         ID родительской группы:
                         - `null` для корневой группы
@@ -3179,10 +3179,10 @@ paths:
                       description: Описание группы
                       example: Группа поддержки
                     parent_id:
-                      oneOf:
-                        - type: integer
-                          minimum: 1
-                        - type: 'null'
+                      type:
+                        - integer
+                        - 'null'
+                      minimum: 1
                       description: ID родительской группы
                     user_ids:
                       type: array
@@ -3513,9 +3513,9 @@ paths:
                               type: string
                               description: Название группы
                             parent_id:
-                              oneOf:
-                                - type: integer
-                                - type: 'null'
+                              type:
+                                - integer
+                                - 'null'
                               description: ID родительской группы
                             level:
                               type: integer
@@ -5136,8 +5136,9 @@ paths:
                                   type: string
                                   example: Course completion
                                 description:
-                                  type: string
-                                  nullable: true
+                                  type:
+                                    - string
+                                    - 'null'
                                   example: Выдаётся за прохождение курса
               examples:
                 certificate_types:
@@ -5225,8 +5226,9 @@ paths:
                                   type: string
                                   example: Имя пользователя
                                 description:
-                                  type: string
-                                  nullable: true
+                                  type:
+                                    - string
+                                    - 'null'
                                   example: Отображается на сертификате
                                 required:
                                   type: boolean
@@ -6055,77 +6057,50 @@ paths:
                                   type: number
                                   example: 60000
                                 date_added_at:
-                                  type: object
+                                  type:
+                                    - object
+                                    - 'null'
                                   properties:
                                     unix:
-                                      type: integer
+                                      type:
+                                        - integer
+                                        - 'null'
                                       example: 1730399460
                                     iso:
-                                      type: string
+                                      type:
+                                        - string
+                                        - 'null'
                                       example: '2024-10-31T13:11:00+03:00'
-                                  oneOf:
-                                    - type: object
-                                      properties:
-                                        unix:
-                                          type: integer
-                                          example: 1730399460
-                                        iso:
-                                          type: string
-                                          example: '2024-10-31T13:11:00+03:00'
-                                    - type: object
-                                      properties:
-                                        unix:
-                                          type: 'null'
-                                        iso:
-                                          type: 'null'
                                 last_activity_at:
-                                  type: object
+                                  type:
+                                    - object
+                                    - 'null'
                                   properties:
                                     unix:
-                                      type: integer
+                                      type:
+                                        - integer
+                                        - 'null'
                                       example: 1730399460
                                     iso:
-                                      type: string
+                                      type:
+                                        - string
+                                        - 'null'
                                       example: '2024-10-31T13:11:00+03:00'
-                                  oneOf:
-                                    - type: object
-                                      properties:
-                                        unix:
-                                          type: integer
-                                          example: 1730399460
-                                        iso:
-                                          type: string
-                                          example: '2024-10-31T13:11:00+03:00'
-                                    - type: object
-                                      properties:
-                                        unix:
-                                          type: 'null'
-                                        iso:
-                                          type: 'null'
                                 registered_at:
-                                  type: object
+                                  type:
+                                    - object
+                                    - 'null'
                                   properties:
                                     unix:
-                                      type: integer
+                                      type:
+                                        - integer
+                                        - 'null'
                                       example: 1730399460
                                     iso:
-                                      type: string
+                                      type:
+                                        - string
+                                        - 'null'
                                       example: '2024-10-31T13:11:00+03:00'
-                                  oneOf:
-                                    - type: object
-                                      properties:
-                                        unix:
-                                          type: integer
-                                          example: 1730399460
-                                        iso:
-                                          type: string
-                                          example: '2024-10-31T13:11:00+03:00'
-                                    - type: object
-                                      properties:
-                                        unix:
-                                          type: 'null'
-                                        iso:
-                                          type: 'null'
                                 progress_percent:
                                   type: integer
                                   minimum: 0
@@ -6823,17 +6798,17 @@ components:
               description: Тип группы (1=гостевая, 2=авторизованных, 9=по умолчанию)
               example: 2
             parent_id:
-              oneOf:
-                - type: integer
-                  minimum: 1
-                - type: 'null'
+              type:
+                - integer
+                - 'null'
+              minimum: 1
               description: ID родительской группы
               example: null
             image:
-              oneOf:
-                - type: string
-                  format: uri
-                - type: 'null'
+              type:
+                - string
+                - 'null'
+              format: uri
               description: URL изображения группы
               example: https://s3.reezonly.com/groups/it-dept.jpg
             created_at:
@@ -6849,17 +6824,17 @@ components:
         - type: object
           properties:
             parent:
-              oneOf:
-                - type: object
-                  description: Информация о родительской группе
-                  properties:
-                    id:
-                      type: integer
-                      example: 1
-                    name:
-                      type: string
-                      example: IT Department
-                - type: 'null'
+              type:
+                - object
+                - 'null'
+              description: Информация о родительской группе
+              properties:
+                id:
+                  type: integer
+                  example: 1
+                name:
+                  type: string
+                  example: IT Department
     GroupDetail:
       allOf:
         - type: object
@@ -6889,17 +6864,17 @@ components:
               description: Тип группы (1=гостевая, 2=авторизованных, 9=по умолчанию)
               example: 2
             parent_id:
-              oneOf:
-                - type: integer
-                  minimum: 1
-                - type: 'null'
+              type:
+                - integer
+                - 'null'
+              minimum: 1
               description: ID родительской группы
               example: null
             image:
-              oneOf:
-                - type: string
-                  format: uri
-                - type: 'null'
+              type:
+                - string
+                - 'null'
+              format: uri
               description: URL изображения группы
               example: https://s3.reezonly.com/groups/it-dept.jpg
             created_at:
@@ -7006,17 +6981,17 @@ components:
                         description: Тип группы (1=гостевая, 2=авторизованных, 9=по умолчанию)
                         example: 2
                       parent_id:
-                        oneOf:
-                          - type: integer
-                            minimum: 1
-                          - type: 'null'
+                        type:
+                          - integer
+                          - 'null'
+                        minimum: 1
                         description: ID родительской группы
                         example: null
                       image:
-                        oneOf:
-                          - type: string
-                            format: uri
-                          - type: 'null'
+                        type:
+                          - string
+                          - 'null'
+                        format: uri
                         description: URL изображения группы
                         example: https://s3.reezonly.com/groups/it-dept.jpg
                       created_at:
@@ -7032,17 +7007,17 @@ components:
                   - type: object
                     properties:
                       parent:
-                        oneOf:
-                          - type: object
-                            description: Информация о родительской группе
-                            properties:
-                              id:
-                                type: integer
-                                example: 1
-                              name:
-                                type: string
-                                example: IT Department
-                          - type: 'null'
+                        type:
+                          - object
+                          - 'null'
+                        description: Информация о родительской группе
+                        properties:
+                          id:
+                            type: integer
+                            example: 1
+                          name:
+                            type: string
+                            example: IT Department
             rules:
               type: array
               description: Правила доступа группы
@@ -7069,9 +7044,9 @@ components:
           type: string
           description: Название группы
         parent_id:
-          oneOf:
-            - type: integer
-            - type: 'null'
+          type:
+            - integer
+            - 'null'
           description: ID родительской группы
         level:
           type: integer
@@ -7102,10 +7077,10 @@ components:
           description: Описание группы (опционально)
           example: Отдел маркетинга и продвижения
         parent_id:
-          oneOf:
-            - type: integer
-              minimum: 1
-            - type: 'null'
+          type:
+            - integer
+            - 'null'
+          minimum: 1
           description: |
             ID родительской группы:
             - `null` для корневой группы
@@ -7143,10 +7118,10 @@ components:
               description: Описание группы (опционально)
               example: Отдел маркетинга и продвижения
             parent_id:
-              oneOf:
-                - type: integer
-                  minimum: 1
-                - type: 'null'
+              type:
+                - integer
+                - 'null'
+              minimum: 1
               description: |
                 ID родительской группы:
                 - `null` для корневой группы
@@ -7177,10 +7152,10 @@ components:
               description: Описание группы
               example: Группа поддержки
             parent_id:
-              oneOf:
-                - type: integer
-                  minimum: 1
-                - type: 'null'
+              type:
+                - integer
+                - 'null'
+              minimum: 1
               description: ID родительской группы
             user_ids:
               type: array
@@ -7591,29 +7566,20 @@ components:
               description: Ссылка на скачивание PDF сертификата
               example: https://cdn.space.com/certificates/CERT-2025-0001.pdf
     DateValue:
-      type: object
+      type:
+        - object
+        - 'null'
       properties:
         unix:
-          type: integer
+          type:
+            - integer
+            - 'null'
           example: 1730399460
         iso:
-          type: string
+          type:
+            - string
+            - 'null'
           example: '2024-10-31T13:11:00+03:00'
-      oneOf:
-        - type: object
-          properties:
-            unix:
-              type: integer
-              example: 1730399460
-            iso:
-              type: string
-              example: '2024-10-31T13:11:00+03:00'
-        - type: object
-          properties:
-            unix:
-              type: 'null'
-            iso:
-              type: 'null'
     ImportStatus:
       type: object
       properties:
