@@ -44,6 +44,30 @@ if (!html.includes('fonts.css')) {
 // Add favicon
 if (!html.includes('favicon.png')) {
     html = html.replace('</head>', '  <link rel="icon" type="image/png" href="favicon.png">\n</head>');
+    // Inject Sidebar Title Script
+    const sidebarTitleScript = `
+<script>
+  window.addEventListener('load', function() {
+    const checkLogo = setInterval(function() {
+      const logo = document.querySelector('img[alt="Reezonly LMS"]');
+      if (logo && logo.parentNode) {
+        clearInterval(checkLogo);
+        // Prevent duplicate injection
+        if (logo.parentNode.querySelector('.custom-sidebar-title')) return;
+        
+        const title = document.createElement('div');
+        title.className = 'custom-sidebar-title';
+        title.innerText = 'Space Platform';
+        title.style.cssText = 'font-family: StyreneALC, sans-serif; font-weight: 700; font-size: 16px; color: #1f2430; margin: 8px 0 0 16px; line-height: 1.2; letter-spacing: -0.02em;';
+        
+        // Insert after logo
+        logo.parentNode.insertBefore(title, logo.nextSibling);
+      }
+    }, 100);
+  });
+</script>`;
+    html = html.replace('</body>', `${sidebarTitleScript}\n</body>`);
+
     fs.writeFileSync(indexPath, html, 'utf8');
-    console.log('✅ Added favicon to docs/index.html');
+    console.log('✅ Added favicon and sidebar title script to docs/index.html');
 }
