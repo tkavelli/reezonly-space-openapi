@@ -1,0 +1,29 @@
+@font-face {
+    font-family: 'StyreneALC';
+    src: url('fonts/styrenealc-light.woff2') format('woff2'),
+         url('fonts/styrenealc-light.woff') format('woff'),
+         url('fonts/styrenealc-light.ttf') format('truetype');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'StyreneALC';
+    src: url('fonts/Styrene A Regular Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'StyreneALC';
+    src: url('fonts/Styrene A Bold Regular.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+body, h1, h2, h3, h4, h5, h6, .sc-hwkwBN, .sc-kNOymR, .sc-dYwGCk {
+    font-family: 'StyreneALC', "Inter", "Helvetica Neue", Arial, sans-serif !important;
+}

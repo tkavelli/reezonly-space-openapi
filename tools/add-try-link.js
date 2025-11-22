@@ -33,3 +33,10 @@ if (!html.includes('Try It Out')) {
 } else {
     console.log('ℹ️ "Try It Out" link already present');
 }
+
+// Add fonts.css reference
+if (!html.includes('fonts.css')) {
+    html = html.replace('</head>', '  <link href="fonts.css" rel="stylesheet">\n</head>');
+    fs.writeFileSync(indexPath, html, 'utf8');
+    console.log('✅ Added fonts.css to docs/index.html');
+}
