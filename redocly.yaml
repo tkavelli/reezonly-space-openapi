@@ -5,35 +5,41 @@ apis:
 extends:
   - recommended
 
-theme:
-  openapi:
+logo: # Путь к картинке и альт-текст (ВЕРХНИЙ УРОВЕНЬ)
+  image: /img/logo.svg # Изменен на абсолютный путь
+  altText: Reezonly Space
+
+openapi:
+  theme:
+    # 2. Размеры и отступы (ВНУТРИ theme.openapi.theme)
     logo:
-      src: img/logo.svg
-      altText: Reezonly LMS
       gutter: 16px
       maxHeight: 40px
+    
+    # Цвета интерфейса
     colors:
       primary:
         main: '#514df7'
       text:
         primary: '#1f2430'
         secondary: '#4b5565'
-      sidebar:
-        backgroundColor: '#eff1f8'
-      rightPanel:
-        backgroundColor: '#0f172a'
-        textColor: '#e2e8f0'
+    
+    sidebar:
+      width: 280px
+      backgroundColor: '#eff1f8'
+    rightPanel:
+      width: 40%
+      backgroundColor: '#0f172a'
+      textColor: '#e2e8f0'
+    
+    # Шрифты (названия семейств)
     typography:
       fontFamily: 'StyreneALC, "Inter", "Helvetica Neue", Arial, sans-serif'
       headings:
         fontFamily: 'StyreneALC, "Inter", "Helvetica Neue", Arial, sans-serif'
-        fontWeight: 700
+        fontWeight: '700' # Строковое значение
       code:
         fontFamily: '"SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", monospace'
-    sidebar:
-      width: 280px
-    rightPanel:
-      width: 40%
 
 rules:
   no-unused-components: error

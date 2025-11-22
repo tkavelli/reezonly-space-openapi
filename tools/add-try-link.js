@@ -13,6 +13,19 @@ if (fs.existsSync(specPath)) {
     console.warn('⚠️ space-platform-api.yaml not found in root');
 }
 
+// Copy logo file to docs/img
+const logoSrcPath = path.join(__dirname, '../img/logo.svg');
+const logoDestDir = path.join(__dirname, '../docs/img');
+const logoDestPath = path.join(logoDestDir, 'logo.svg');
+
+if (fs.existsSync(logoSrcPath)) {
+    fs.mkdirSync(logoDestDir, { recursive: true }); // Ensure docs/img directory exists
+    fs.copyFileSync(logoSrcPath, logoDestPath);
+    console.log('✅ Copied img/logo.svg to docs/img/');
+} else {
+    console.warn('⚠️ img/logo.svg not found in root');
+}
+
 if (!fs.existsSync(indexPath)) {
     console.warn('⚠️ docs/index.html not found, skipping try-link addition');
     process.exit(0);
@@ -44,24 +57,42 @@ if (!html.includes('fonts.css')) {
 // Add favicon
 if (!html.includes('favicon.png')) {
     html = html.replace('</head>', '  <link rel="icon" type="image/png" href="favicon.png">\n</head>');
-    // Inject Sidebar Title Script
+    // Inject Sidebar Title and Logo Script
     const sidebarTitleScript = `
 <script>
   window.addEventListener('load', function() {
     const checkLogo = setInterval(function() {
-      const logo = document.querySelector('img[alt="Reezonly LMS"]');
-      if (logo && logo.parentNode) {
-        clearInterval(checkLogo);
-        // Prevent duplicate injection
-        if (logo.parentNode.querySelector('.custom-sidebar-title')) return;
-        
-        const title = document.createElement('div');
-        title.className = 'custom-sidebar-title';
-        title.innerText = 'Space Platform';
-        title.style.cssText = 'font-family: StyreneALC, sans-serif; font-weight: 700; font-size: 16px; color: #1f2430; margin: 8px 0 0 16px; line-height: 1.2; letter-spacing: -0.02em;';
-        
-        // Insert after logo
-        logo.parentNode.insertBefore(title, logo.nextSibling);
+      // Try to find existing logo
+      let logo = document.querySelector('img[alt="Reezonly Space"]');
+      const sidebar = document.querySelector('.menu-content');
+
+      if (sidebar) {
+        // If logo doesn't exist, create it
+        if (!logo) {
+            logo = document.createElement('img');
+            logo.alt = 'Reezonly Space';
+            logo.src = 'img/logo.svg'; 
+            logo.style.cssText = 'max-height: 40px; margin: 16px; display: block;';
+            sidebar.insertBefore(logo, sidebar.firstChild);
+            console.log('✅ Logo injected manually');
+        }
+
+        // Inject Title if not present
+        if (logo && logo.parentNode && !logo.parentNode.querySelector('.custom-sidebar-title')) {
+            const title = document.createElement('div');
+            title.className = 'custom-sidebar-title';
+            title.innerText = 'Space Platform';
+            title.style.cssText = 'font-family: StyreneALC, sans-serif; font-weight: 700; font-size: 16px; color: #1f2430; margin: 0 0 0 16px; line-height: 1.2; letter-spacing: -0.02em; padding-bottom: 20px;';
+            
+            // Insert title after logo
+            if (logo.nextSibling) {
+                logo.parentNode.insertBefore(title, logo.nextSibling);
+            } else {
+                logo.parentNode.appendChild(title);
+            }
+            
+            clearInterval(checkLogo);
+        }
       }
     }, 100);
   });
@@ -69,5 +100,5 @@ if (!html.includes('favicon.png')) {
     html = html.replace('</body>', `${sidebarTitleScript}\n</body>`);
 
     fs.writeFileSync(indexPath, html, 'utf8');
-    console.log('✅ Added favicon and sidebar title script to docs/index.html');
+    console.log('✅ Added favicon, logo injection and sidebar title script to docs/index.html');
 }
