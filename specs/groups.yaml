@@ -36,30 +36,20 @@ paths:
     get:
       tags: [Groups.Structure]
       operationId: listGroups
-      summary: Получить список групп с пагинацией и фильтрацией
+      summary: Получить список групп
       description: |
-        Возвращает список групп с поддержкой пагинации, поиска и иерархической фильтрации.
-        Можно фильтровать по родительской группе, искать по названию и описанию.
-        Поддерживает сортировку по количеству пользователей и дате обновления.
+        Возвращает список групп без пагинации.
+        Поддерживаются фильтры по `id`, `parent_id`, строке поиска и флагу `showDefault` (0/1).
+        Сортировка задаётся параметром `sort` (например, `sort=updated_at` или `sort=-updated_at`).
 
       parameters:
-        - name: page
+        - name: id
           in: query
           schema:
             type: integer
             minimum: 1
-            default: 1
-          description: Номер страницы
-          example: 1
-        - name: per_page
-          in: query
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-            default: 20
-          description: Элементов на странице
-          example: 20
+          description: ID группы
+          example: 12
         - name: parent_id
           in: query
           schema:
@@ -78,29 +68,22 @@ paths:
           in: query
           schema:
             type: string
-            enum: [name, user_count, created_at, updated_at]
-            default: name
-          description: Поле сортировки
-          example: name
-        - name: order
+            enum: [id, -id, search, -search, updated_at, -updated_at, userCount, -userCount]
+            default: -updated_at
+          description: Поле сортировки (префикс `-` для убывания)
+          example: -updated_at
+        - name: showDefault
           in: query
           schema:
-            type: string
-            enum: [asc, desc]
-            default: asc
-          description: Направление сортировки
-          example: asc
-        - name: include_default
-          in: query
-          schema:
-            type: boolean
-            default: false
-          description: Включить системные группы по умолчанию
-          example: false
+            type: integer
+            enum: [0,1]
+            default: 0
+          description: Показывать системные группы (guest/authorized)
+          example: 0
 
       responses:
         '200':
-          description: Успешный ответ с отфильтрованным списком групп
+          description: Успешный ответ со списком групп (без пагинации)
           content:
             application/json:
               schema:
@@ -117,7 +100,7 @@ paths:
                               $ref: '#/components/schemas/GroupListItem'
               examples:
                 groups_list:
-                  summary: Список групп с пагинацией
+                  summary: Список групп
                   value:
                     success: true
                     data:
@@ -372,6 +355,7 @@ paths:
               move:
                 summary: Перенос в другую родительскую группу
                 value:
+                  name: "Sales"
                   parent_id: 5
 
       responses:
@@ -526,50 +510,60 @@ paths:
                   value:
                     success: true
 
+        '422':
+          $ref: './core/common/responses.yaml#/components/responses/UnprocessableEntity'
+        '403':
+          $ref: './core/common/responses.yaml#/components/responses/Forbidden'
+
   /dictionary/user/groups:
     get:
       tags: [Groups.Structure]
       operationId: listDictionaryGroups
-      summary: Получить иерархию всех групп
-      description: |
-        Возвращает полный список групп с иерархической структурой для выпадающих списков
-        и древовидных компонентов интерфейса.
+      summary: Получить список групп для справочника
+      description: Возвращает плоский список групп; иерархия собирается на клиенте при необходимости.
 
       parameters:
-        - name: show_default
+        - name: showDefault
           in: query
           schema:
-            type: boolean
-            default: false
-          description: Показать группы по умолчанию (гостевые, авторизованные)
+            type: integer
+            enum: [0,1]
+            default: 0
+          description: Показать системные группы (гостевые/авторизованные)
 
       responses:
         '200':
-          description: Иерархический список групп
+          description: Список групп
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      items:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/GroupHierarchyItem'
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Group'
               examples:
-                full_tree:
-                  summary: Полное дерево групп
+                list:
+                  summary: Плоский список групп
                   value:
                     success: true
                     items:
                       - id: 1
                         name: "Root"
-                        children:
-                          - id: 2
-                            name: "Sales"
-                          - id: 3
-                            name: "Marketing"
+                      - id: 2
+                        name: "Sales"
+                        parent_id: 1
+                      - id: 3
+                        name: "Marketing"
+
+        '422':
+          $ref: './core/common/responses.yaml#/components/responses/UnprocessableEntity'
+        '403':
+          $ref: './core/common/responses.yaml#/components/responses/Forbidden'
 
   # === Groups.Members Methods ===
 
@@ -635,6 +629,9 @@ paths:
             application/json:
               schema:
                 $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
+
+        '403':
+          $ref: './core/common/responses.yaml#/components/responses/Forbidden'
 
   /group/group/user-list:
     get:
@@ -764,6 +761,9 @@ paths:
                     data:
                       export_id: 102
                       download_url: "https://space.example.com/export/102.xlsx"
+
+        '403':
+          $ref: './core/common/responses.yaml#/components/responses/Forbidden'
         '500':
           $ref: './core/common/responses.yaml#/components/responses/InternalError'
 
@@ -772,6 +772,9 @@ paths:
       tags: [Groups.Structure]
       operationId: createGroupExportDownload
       summary: Скачать сформированный экспорт групп
+      description: |
+        Возвращает файл экспорта (XLSX/CSV) по идентификатору задачи экспорта.
+        Используется после получения уведомления о готовности экспорта или поллинга статуса.
       parameters:
         - name: id
           in: query
@@ -858,6 +861,11 @@ paths:
                   summary: Задача поставлена в очередь
                   value:
                     success: true
+
+        '422':
+          $ref: './core/common/responses.yaml#/components/responses/UnprocessableEntity'
+        '403':
+          $ref: './core/common/responses.yaml#/components/responses/Forbidden'
 
   /group/group/rule-add:
     post:
