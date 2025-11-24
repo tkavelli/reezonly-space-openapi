@@ -57,7 +57,11 @@ if (!html.includes('fonts.css')) {
 // Add favicon
 if (!html.includes('favicon.png')) {
     html = html.replace('</head>', '  <link rel="icon" type="image/png" href="favicon.png">\n</head>');
-    // Inject Sidebar Title and Logo Script
+    console.log('✅ Added favicon to docs/index.html');
+}
+
+// Inject Sidebar Title and Logo Script
+if (!html.includes('custom-sidebar-title')) {
     const sidebarTitleScript = `
 <script>
   window.addEventListener('load', function() {
@@ -97,8 +101,13 @@ if (!html.includes('favicon.png')) {
     }, 100);
   });
 </script>`;
-    html = html.replace('</body>', `${sidebarTitleScript}\n</body>`);
-
-    fs.writeFileSync(indexPath, html, 'utf8');
-    console.log('✅ Added favicon, logo injection and sidebar title script to docs/index.html');
+    const lastBodyIndex = html.lastIndexOf('</body>');
+    if (lastBodyIndex !== -1) {
+        html = html.substring(0, lastBodyIndex) + `${sidebarTitleScript}\n` + html.substring(lastBodyIndex);
+        console.log('✅ Added logo injection and sidebar title script to docs/index.html');
+    } else {
+        console.warn('⚠️ Could not find </body> tag to inject script');
+    }
 }
+
+fs.writeFileSync(indexPath, html, 'utf8');
