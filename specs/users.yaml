@@ -134,7 +134,7 @@ paths:
                           items:
                             $ref: '#/components/schemas/UserListItem'
         '422':
-          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+          $ref: ./core/common/responses.yaml#/components/responses/ValidationPaginationInteger
         '500':
           $ref: ./core/common/responses.yaml#/components/responses/InternalError
       security:
@@ -180,7 +180,7 @@ paths:
                           items:
                             $ref: '#/components/schemas/UserListItem'
         '422':
-          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+          $ref: ./core/common/responses.yaml#/components/responses/ValidationPaginationInteger
         '500':
           $ref: ./core/common/responses.yaml#/components/responses/InternalError
       security:
@@ -249,7 +249,7 @@ paths:
                           type: integer
                           example: 1
         '422':
-          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+          $ref: ./core/common/responses.yaml#/components/responses/ValidationFileImportMissing
         '500':
           $ref: ./core/common/responses.yaml#/components/responses/InternalError
       security:
@@ -286,7 +286,7 @@ paths:
                           type: integer
                           example: 1
         '422':
-          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+          $ref: ./core/common/responses.yaml#/components/responses/ValidationUserUpdate
         '403':
           $ref: ./core/common/responses.yaml#/components/responses/Forbidden
         '500':
@@ -425,7 +425,7 @@ paths:
                           type: boolean
                           example: true
         '422':
-          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+          $ref: ./core/common/responses.yaml#/components/responses/ValidationIdsArray
         '500':
           $ref: ./core/common/responses.yaml#/components/responses/InternalError
       security:
@@ -459,7 +459,7 @@ paths:
                     description: Количество удаленных записей
                     example: 1
         '422':
-          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+          $ref: ./core/common/responses.yaml#/components/responses/ValidationIdsArray
         '500':
           $ref: ./core/common/responses.yaml#/components/responses/InternalError
       security:
@@ -571,7 +571,7 @@ paths:
                           type: string
                           example: example
         '422':
-          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+          $ref: ./core/common/responses.yaml#/components/responses/ValidationPaginationInteger
         '500':
           $ref: ./core/common/responses.yaml#/components/responses/InternalError
   /user/user/get-import-progress:
@@ -653,7 +653,7 @@ paths:
                           items:
                             $ref: '#/components/schemas/ImportReport'
         '422':
-          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+          $ref: ./core/common/responses.yaml#/components/responses/ValidationPaginationInteger
         '500':
           $ref: ./core/common/responses.yaml#/components/responses/InternalError
   /user/importreport/download:

@@ -144,8 +144,8 @@ components:
           example:
             success: false
             errors:
-              password:
-                - "Password must be at least 6 characters"
+              field:
+                - "Значение поля некорректно"
 
     UnprocessableEntity:
       description: Ошибка валидации данных (422)
@@ -156,8 +156,119 @@ components:
           example:
             success: false
             errors:
-              password:
-                - "Password must be at least 6 characters"
+              field:
+                - "Значение поля некорректно"
+
+    ValidationPaginationInteger:
+      description: >
+        Ошибка пагинации: номера страниц и лимитов должны быть целыми числами
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            errors:
+              page:
+                - "Номер страницы должен быть целым числом"
+
+    ValidationIdsArray:
+      description: >
+        Ошибка списка идентификаторов (массив целых чисел / существование)
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            errors:
+              userIds:
+                - "Каждое значение в userIds должно быть целым числом"
+              courseIds:
+                - "ID курса некорректен"
+
+    ValidationGroupParent:
+      description: >
+        Ошибка структуры групп (родитель невалиден или зациклен)
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            errors:
+              parent_id:
+                - "ID родительской группы некорректен"
+                - "Родительская группа не может быть подгруппой текущей группы"
+
+    ValidationTemplate:
+      description: Ошибка валидации шаблона сертификата
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            errors:
+              name:
+                - "Название не может быть пустым"
+              file_id:
+                - "Необходимо выбрать файл шаблона"
+
+    ValidationCertificateItem:
+      description: >
+        Ошибка выдачи сертификатов по элементам списка
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            errors:
+              items.0.user_id:
+                - "Пользователь не найден"
+              items.0.course_id:
+                - "Курс не найден"
+
+    ValidationUserUpdate:
+      description: Ошибка валидации при обновлении пользователя
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            errors:
+              email:
+                - "Email должен быть корректным адресом"
+              role:
+                - "Указанная роль не существует"
+
+    ValidationFileImportMissing:
+      description: >
+        Ошибка импорта пользователей — файл не загружен
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            errors:
+              fileImport:
+                - "Файл не загружен"
+
+    ValidationGroupDelete:
+      description: >
+        Ошибка удаления группы (есть дочерние группы)
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            errors:
+              id:
+                - "Невозможно удалить группу, у которой есть дочерние группы"
 
     InternalError:
       description: Внутренняя ошибка сервера

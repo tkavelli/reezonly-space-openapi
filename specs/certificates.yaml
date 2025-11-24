@@ -93,7 +93,7 @@ paths:
                         created_at: 1728115200
                         updated_at: 1730534400
         '422':
-          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+          $ref: ./core/common/responses.yaml#/components/responses/ValidationPaginationInteger
         '403':
           $ref: ./core/common/responses.yaml#/components/responses/Forbidden
         '500':
@@ -357,7 +357,7 @@ paths:
                           email: maria@example.com
                         file: https://s3.space/certificates/2024/cert-46.pdf
         '422':
-          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+          $ref: ./core/common/responses.yaml#/components/responses/ValidationPaginationInteger
         '403':
           $ref: ./core/common/responses.yaml#/components/responses/Forbidden
         '500':
@@ -498,7 +498,7 @@ paths:
                     success: true
                     message: Certificate created
         '422':
-          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+          $ref: ./core/common/responses.yaml#/components/responses/ValidationCertificateItem
         '500':
           $ref: ./core/common/responses.yaml#/components/responses/InternalError
       security:
@@ -699,7 +699,7 @@ paths:
                     data:
                       filePath: https://space.example.com/uploads/certificates/zip/certificates-2025-02-11.zip
         '422':
-          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+          $ref: ./core/common/responses.yaml#/components/responses/ValidationPaginationInteger
         '500':
           $ref: ./core/common/responses.yaml#/components/responses/InternalError
       security:
@@ -910,7 +910,7 @@ paths:
                         title: Менторская программа
                         type: program
         '422':
-          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+          $ref: ./core/common/responses.yaml#/components/responses/ValidationPaginationInteger
         '403':
           $ref: ./core/common/responses.yaml#/components/responses/Forbidden
         '500':
@@ -1016,7 +1016,7 @@ paths:
                         username: Мария Петрова
                         email: maria@example.com
         '422':
-          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+          $ref: ./core/common/responses.yaml#/components/responses/ValidationPaginationInteger
         '403':
           $ref: ./core/common/responses.yaml#/components/responses/Forbidden
         '500':
@@ -1148,7 +1148,7 @@ paths:
                         name: Название курса
                         required: true
         '422':
-          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+          $ref: ./core/common/responses.yaml#/components/responses/ValidationPaginationInteger
         '403':
           $ref: ./core/common/responses.yaml#/components/responses/Forbidden
         '500':
@@ -1203,7 +1203,7 @@ paths:
                         key: course_title
                         value: Онбординг
         '422':
-          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+          $ref: ./core/common/responses.yaml#/components/responses/ValidationPaginationInteger
         '403':
           $ref: ./core/common/responses.yaml#/components/responses/Forbidden
         '500':

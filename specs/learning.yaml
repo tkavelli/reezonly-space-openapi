@@ -165,7 +165,7 @@ paths:
                         lms_id: 502
                         student_count: 120
         '422':
-          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+          $ref: ./core/common/responses.yaml#/components/responses/ValidationPaginationInteger
         '403':
           $ref: ./core/common/responses.yaml#/components/responses/Forbidden
         '500':
