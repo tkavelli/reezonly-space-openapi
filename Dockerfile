@@ -32,8 +32,8 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/bundles ./bundles
 COPY --from=build /app/docs ./docs
 COPY --from=build /app/space-platform-api.yaml ./space-platform-api.yaml
-# Expose top-level index for convenience (opens docs)
-RUN if [ -f ./docs/index.html ]; then ln -s ./docs/index.html ./index.html; fi
+# Copy index.html to root for convenience (opens docs)
+COPY --from=build /app/docs/index.html ./index.html
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
