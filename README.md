@@ -6,7 +6,19 @@
 
 ## Быстрый старт (Docker)
 
-Самый простой способ поднять проект локально:
+### Вариант 1: Готовый образ (рекомендуется)
+
+Образ автоматически собирается при каждом push в main:
+
+```bash
+# запуск контейнера на порту 3000 с готовым образом из GitHub Container Registry
+docker run -p 3000:80 ghcr.io/tkavelli/reezonly-space-openapi:latest
+
+# открыть в браузере
+open http://localhost:3000
+```
+
+### Вариант 2: Собрать образ локально
 
 ```bash
 # сборка образа
@@ -164,29 +176,50 @@ reezonly-space-openapi/
 
 ## Docker
 
-### Собрать образ
+### Использовать готовый образ (рекомендуется)
+
+Образ автоматически собирается в GitHub Actions при каждом push:
 
 ```bash
-docker build -t reezonly-space-openapi .
-```
+# запустить готовый образ с Docker Hub
+docker run -d -p 3000:80 --name space-api ghcr.io/tkavelli/reezonly-space-openapi:latest
 
-### Запустить контейнер
-
-```bash
-docker run -d -p 3000:80 --name space-api reezonly-space-openapi
-```
-
-### Проверить логи
-
-```bash
+# проверить логи
 docker logs -f space-api
-```
 
-### Остановить контейнер
-
-```bash
+# остановить контейнер
 docker stop space-api && docker rm space-api
 ```
+
+### Собрать образ локально
+
+```bash
+# собрать образ
+docker build -t reezonly-space-openapi .
+
+# запустить контейнер
+docker run -d -p 3000:80 --name space-api reezonly-space-openapi
+
+# проверить логи
+docker logs -f space-api
+
+# остановить контейнер
+docker stop space-api && docker rm space-api
+```
+
+### Доступные образы
+
+При каждом push в `main` GitHub Actions автоматически собирает и публикует образ:
+- `ghcr.io/tkavelli/reezonly-space-openapi:latest` — последняя версия из main
+- `ghcr.io/tkavelli/reezonly-space-openapi:main` — текущий branch
+- `ghcr.io/tkavelli/reezonly-space-openapi:sha-<commit>` — конкретный коммит
+
+Скачать образ:
+```bash
+docker pull ghcr.io/tkavelli/reezonly-space-openapi:latest
+```
+
+Проверить статус сборки: https://github.com/tkavelli/reezonly-space-openapi/actions
 
 ---
 
@@ -198,15 +231,29 @@ docker stop space-api && docker rm space-api
 
 ---
 
-## Continuous Integration (GitHub Pages)
+## Continuous Integration (CI/CD)
+
+### GitHub Pages (pages.yml)
 
 При push в `main`:
-1. GitHub Actions запускает `.github/workflows/pages.yml`
-2. Восстанавливает зависимости: `npm ci && npm ci --prefix tools`
-3. Генерирует документацию: `npm run build-docs`
-4. Деплоит в GitHub Pages: https://tkavelli.github.io/reezonly-space-openapi
+1. Восстанавливает зависимости: `npm ci && npm ci --prefix tools`
+2. Генерирует документацию: `npm run build-docs`
+3. Деплоит в GitHub Pages: https://tkavelli.github.io/reezonly-space-openapi
 
-Проверить статус: https://github.com/tkavelli/reezonly-space-openapi/actions
+### Docker Image (docker.yml)
+
+При push в `main`:
+1. Собирает Docker образ
+2. Публикует в GitHub Container Registry (ghcr.io)
+3. Доступен на: `ghcr.io/tkavelli/reezonly-space-openapi:latest`
+
+### Проверить статус
+
+Все workflows: https://github.com/tkavelli/reezonly-space-openapi/actions
+
+Что происходит:
+- `pages.yml` — деплой на GitHub Pages (через nginx в докере)
+- `docker.yml` — сборка и публикация Docker образа
 
 ---
 
