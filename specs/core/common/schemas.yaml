@@ -1,17 +1,18 @@
-# Common Schemas for Reezonly Space API
 components:
   schemas:
-    # Standard Response Structure
     SuccessResponse:
       type: object
+      description: Базовый успешный ответ (используется в Success, Created, UserList, GroupList, CertificateList)
+      required:
+        - success
       properties:
         success:
           type: boolean
+          description: Флаг успешности операции
           example: true
         meta:
           $ref: '#/components/schemas/PaginationMeta'
-
-    # Error Response Structure
+          description: 'Пагинация (опционально, только для списков)'
     ErrorResponse:
       type: object
       properties:
@@ -22,10 +23,10 @@ components:
           type: object
           description: Ошибки валидации по полям
           example:
-            email: ["Email already taken."]
-            password: ["Password minimum 6 characters."]
-
-    # Pagination Metadata
+            email:
+            - Email already taken.
+            password:
+            - Password minimum 6 characters.
     PaginationMeta:
       type: object
       properties:
@@ -37,12 +38,10 @@ components:
           type: integer
           description: Текущая страница
           example: 1
-        per-page:
+        per_page:
           type: integer
           description: Элементов на странице
           example: 20
-
-    # Base User Model
     User:
       type: object
       properties:
@@ -52,37 +51,42 @@ components:
         email:
           type: string
           format: email
-          example: "user@example.com"
+          example: user@example.com
         name:
           type: string
-          example: "Иван Иванов"
+          example: Иван Иванов
         role:
           type: string
-          enum: [admin, editor, curator, student]
+          enum:
+          - admin
+          - editor
+          - curator
+          - student
           x-enumDescriptions:
             admin: Администратор (полный доступ)
             editor: Контент-редактор
             curator: Куратор/методист
             student: Ученик/слушатель
-          example: "student"
+          example: student
         status:
           type: string
-          enum: [active, inactive, blocked]
+          enum:
+          - active
+          - inactive
+          - blocked
           x-enumDescriptions:
             active: Активный пользователь
             inactive: Неактивный (архив/черновик)
             blocked: Заблокирован (без доступа)
-          example: "active"
+          example: active
         created_at:
-          type: string
-          format: date-time
-          example: "2024-01-15T10:30:00Z"
+          type: integer
+          description: Unix timestamp создания пользователя
+          example: 1705316400
         updated_at:
-          type: string
-          format: date-time
-          example: "2024-01-15T10:30:00Z"
-
-    # Base Group Model
+          type: integer
+          description: Unix timestamp последнего обновления
+          example: 1705316400
     Group:
       type: object
       properties:
@@ -91,15 +95,15 @@ components:
           example: 1
         name:
           type: string
-          example: "Отдел продаж"
+          example: Отдел продаж
         description:
           type: string
-          example: "Сотрудники отдела продаж"
+          example: Сотрудники отдела продаж
         parent_id:
           oneOf:
-            - type: integer
-              minimum: 1
-            - type: 'null'
+          - type: integer
+            minimum: 1
+          - type: 'null'
           example: null
         members_count:
           type: integer
@@ -108,37 +112,125 @@ components:
           type: integer
           example: 0
         created_at:
-          type: string
-          format: date-time
-          example: "2024-01-15T10:30:00Z"
-
-    # Base Certificate Model
+          type: integer
+          description: Unix timestamp создания группы
+          example: 1705316400
     Certificate:
       type: object
+      description: Сертификат, выданный пользователю за прохождение курса
       properties:
         id:
           type: integer
-          example: 1
+          description: ID сертификата
+          example: 45
+        number:
+          type:
+          - string
+          - 'null'
+          description: Уникальный номер сертификата
+          example: CERT-2024-001
+        created_at:
+          type: integer
+          description: Дата выдачи сертификата (Unix timestamp)
+          example: 1727772000
+        course:
+          $ref: '#/components/schemas/CertificateCourse'
+        user:
+          $ref: '#/components/schemas/CertificateUser'
+        file:
+          type:
+          - string
+          - 'null'
+          description: URL скачивания PDF сертификата (S3)
+          example: https://s3.space/certificates/2024/cert-45.pdf
+        fields:
+          type:
+          - array
+          - 'null'
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+                example: username
+              value:
+                type: string
+                example: Иван Иванов
+          description: Значения переменных шаблона сертификата
+        template:
+          $ref: '#/components/schemas/CertificateTemplateInfo'
+    CertificateCourse:
+      type: object
+      description: Информация о курсе (вложенный объект в Certificate)
+      properties:
+        id:
+          type: integer
+          example: 456
+        alias:
+          type: string
+          description: Алиас/slug курса для URL
+          example: onboarding-2024
         title:
           type: string
-          example: "Сертификат о прохождении курса"
-        description:
+          description: Название курса
+          example: Онбординг
+        type_id:
+          type: integer
+          description: ID типа курса
+          example: 1
+        picture_thumbnail:
+          type:
+          - string
+          - 'null'
+          description: URL миниатюры курса
+          example: https://cdn.space/courses/456/thumb.png
+    CertificateUser:
+      type: object
+      description: Информация о пользователе (вложенный объект в Certificate)
+      properties:
+        id:
+          type: integer
+          example: 123
+        username:
           type: string
-          example: "Выдан за успешное завершение курса"
-        issued_at:
+          example: Иван Иванов
+        email:
           type: string
-          format: date-time
-          example: "2024-01-15T10:30:00Z"
-        status:
+          format: email
+          example: ivan@example.com
+    CertificateTemplateInfo:
+      type: object
+      description: Информация о шаблоне сертификата (вложенный объект в Certificate)
+      properties:
+        id:
+          type: integer
+          example: 2
+        name:
           type: string
-          enum: [issued, revoked, expired]
-          x-enumDescriptions:
-            issued: Сертификат выдан
-            revoked: Сертификат отозван
-            expired: Срок действия истёк
-          example: "issued"
-
-    # Certificate Template Model
+          description: Название шаблона
+          example: Gold Award
+        hide_for_student:
+          type: boolean
+          description: Скрыть для студента
+          example: false
+        file:
+          type:
+          - string
+          - 'null'
+          description: URL файла шаблона
+          example: https://s3.space/templates/2/template.pdf
+        type:
+          type:
+          - object
+          - 'null'
+          description: Тип сертификата
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: Course completion
     CertificateTemplate:
       type: object
       properties:
@@ -148,82 +240,63 @@ components:
         name:
           type: string
           description: Название шаблона сертификата
-          example: "Standard Completion"
+          example: Standard Completion
         description:
           type: string
           description: Краткое описание шаблона
-          example: "Базовый шаблон для завершения курса"
+          example: Базовый шаблон для завершения курса
         file_url:
           type: string
           format: uri
           description: Ссылка на файл шаблона (PDF/DOCX)
-          example: "https://cdn.space.com/cert-templates/standard.pdf"
+          example: https://cdn.space.com/cert-templates/standard.pdf
         preview_url:
           type: string
           format: uri
           description: Превью изображения шаблона
-          example: "https://cdn.space.com/cert-templates/standard.png"
+          example: https://cdn.space.com/cert-templates/standard.png
         created_at:
-          type: string
-          format: date-time
-          example: "2024-12-01T10:00:00Z"
+          type: integer
+          example: 1733044800
         updated_at:
-          type: string
-          format: date-time
-          example: "2024-12-15T15:30:00Z"
-
-    # Detailed Certificate view
+          type: integer
+          example: 1734273000
     CertificateDetail:
-      allOf:
-        - $ref: '#/components/schemas/Certificate'
-        - type: object
-          properties:
-            user:
-              $ref: '#/components/schemas/User'
-            course:
-              type: object
-              properties:
-                id:
-                  type: integer
-                  example: 480
-                title:
-                  type: string
-                  example: "Data Analytics 101"
-            template:
-              $ref: '#/components/schemas/CertificateTemplate'
-            download_url:
-              type: string
-              format: uri
-              description: Ссылка на скачивание PDF сертификата
-              example: "https://cdn.space.com/certificates/CERT-2025-0001.pdf"
-
-    # Date value with unix and iso
+      $ref: '#/components/schemas/Certificate'
     DateValue:
-      type: [object, 'null']
+      type:
+      - object
+      - 'null'
       properties:
         unix:
-          type: [integer, 'null']
+          type:
+          - integer
+          - 'null'
           example: 1730399460
         iso:
-          type: [string, 'null']
-          example: "2024-10-31T13:11:00+03:00"
-
-    # Import Status Model
+          type:
+          - string
+          - 'null'
+          example: '2024-10-31T13:11:00+03:00'
     ImportStatus:
       type: object
       properties:
         id:
           type: string
-          example: "import_123456"
+          example: import_123456
         status:
           type: string
-          enum: [pending, processing, completed, failed]
+          enum:
+          - pending
+          - processing
+          - completed
+          - failed
           x-enumDescriptions:
             pending: Задача создана, ожидает запуска
             processing: Импорт выполняется
             completed: Импорт успешно завершён
             failed: Импорт завершился ошибкой
-          example: "processing"
+          example: processing
         progress:
           type: object
           properties:
@@ -237,15 +310,14 @@ components:
               type: integer
               example: 5
         started_at:
-          type: string
-          format: date-time
-          example: "2024-01-15T10:30:00Z"
+          type: integer
+          description: Unix timestamp начала импорта
+          example: 1705316400
         estimated_completion:
           type: string
           format: date-time
-          example: "2024-01-15T11:00:00Z"
-
-    # Base Course Model
+          description: Ориентировочное время завершения (ISO 8601)
+          example: '2024-01-15T11:00:00Z'
     Course:
       type: object
       properties:
@@ -254,13 +326,16 @@ components:
           example: 101
         title:
           type: string
-          example: "Онбординг"
+          example: Онбординг
         description:
           type: string
-          example: "Базовый курс для новых сотрудников"
+          example: Базовый курс для новых сотрудников
         status:
           type: string
-          enum: [draft, active, archived]
+          enum:
+          - draft
+          - active
+          - archived
           example: active
         price:
           type: number
@@ -269,50 +344,66 @@ components:
         duration:
           type: string
           description: Продолжительность в удобном формате
-          example: "2h"
+          example: 2h
         level:
           type: string
-          enum: [beginner, intermediate, advanced]
+          enum:
+          - beginner
+          - intermediate
+          - advanced
           example: beginner
         category:
           type: object
           properties:
-            id: { type: integer, example: 5 }
-            name: { type: string, example: "Корпоративное обучение" }
+            id:
+              type: integer
+              example: 5
+            name:
+              type: string
+              example: Корпоративное обучение
         instructor:
           type: object
           properties:
-            id: { type: integer, example: 77 }
-            name: { type: string, example: "Анна Смирнова" }
+            id:
+              type: integer
+              example: 77
+            name:
+              type: string
+              example: Анна Смирнова
             avatar_url:
               type: string
               format: uri
-              example: "https://cdn.space/instructors/77.png"
+              example: https://cdn.space/instructors/77.png
         thumbnail_url:
           type: string
           format: uri
-          example: "https://cdn.space/courses/101.png"
+          example: https://cdn.space/courses/101.png
         lms_id:
           type: integer
           example: 501
-
     CourseDetail:
       allOf:
-        - $ref: '#/components/schemas/Course'
-        - type: object
-          properties:
-            syllabus:
-              type: array
-              description: Список модулей/уроков
-              items:
-                type: object
-                properties:
-                  id: { type: integer, example: 1 }
-                  title: { type: string, example: "Введение" }
-                  description: { type: string, example: "Как работать в системе" }
-                  duration: { type: string, example: "10m" }
-
-    # File Upload Response
+      - $ref: '#/components/schemas/Course'
+      - type: object
+        properties:
+          syllabus:
+            type: array
+            description: Список модулей/уроков
+            items:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  example: 1
+                title:
+                  type: string
+                  example: Введение
+                description:
+                  type: string
+                  example: Как работать в системе
+                duration:
+                  type: string
+                  example: 10m
     FileUploadResponse:
       type: object
       properties:
@@ -321,13 +412,52 @@ components:
           example: true
         file_id:
           type: string
-          example: "file_abc123"
+          example: file_abc123
         filename:
           type: string
-          example: "users_import.xlsx"
+          example: users_import.xlsx
         size:
           type: integer
           example: 25600
         mime_type:
           type: string
-          example: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          example: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+    ImportReport:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 456
+        status:
+          type: string
+          enum:
+          - pending
+          - processing
+          - completed
+          - failed
+          x-enumDescriptions:
+            pending: Задача создана, ожидает запуска
+            processing: Импорт выполняется
+            completed: Импорт успешно завершён
+            failed: Импорт завершился ошибкой
+          example: completed
+        total:
+          type: integer
+          description: Всего записей в импорте
+          example: 100
+        processed:
+          type: integer
+          description: Успешно обработано
+          example: 98
+        errors:
+          type: integer
+          description: Количество ошибок
+          example: 2
+        created_at:
+          type: integer
+          description: Unix timestamp создания отчёта импорта
+          example: 1705316400
+        updated_at:
+          type: integer
+          description: Unix timestamp последнего обновления отчёта
+          example: 1705319400

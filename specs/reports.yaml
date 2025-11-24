@@ -1,34 +1,42 @@
-# Integration Reports API - 1 метод
-# Отчёты для интеграционных систем (публичный JSON)
-
 openapi: 3.1.0
 info:
   title: Integration Reports API
   version: 1.0.0
-  description: |
-    ## Integration Reports — 1 метод (Сводный JSON)
+  description: '## Integration Reports — 1 метод (Сводный JSON)
 
-    Раздел предназначен для отдачи JSON-эквивалента XLSX «Сводный» отчёта. Поддерживает гибкие фильтры по продуктам, группам, прогрессу и профилям пользователей и возвращает список учеников с метаданными.
 
+    Раздел предназначен для отдачи JSON-эквивалента XLSX «Сводный» отчёта. Поддерживает гибкие фильтры по продуктам, группам,
+    прогрессу и профилям пользователей и возвращает список учеников с метаданными.
+
+    '
+servers:
+- url: /api/v1
+  description: API v1 endpoint
 tags:
-  - name: Integration Reports
-    description: |
-      ## Отчеты для интеграционных систем
+- name: Integration Reports
+  description: '## Отчеты для интеграционных систем
 
-      Генерация данных «Сводного» отчёта в JSON для BI/дашбордов без генерации файлов.
 
+    Генерация данных «Сводного» отчёта в JSON для BI/дашбордов без генерации файлов.
+
+    '
 paths:
   /v1/integration/report/consolidated:
     post:
       operationId: createIntegrationReport
-      tags: [Integration Reports]
+      tags:
+      - Integration Reports
       summary: Сводный отчёт (JSON)
-      description: |
-        JSON-эквивалент XLSX «Сводный» отчёта с фильтрами по продуктам, группам, прогрессу и полям профиля.
+      description: 'JSON-эквивалент XLSX «Сводный» отчёта с фильтрами по продуктам, группам, прогрессу и полям профиля.
+
 
         **Назначение:** отдать тот же набор колонок, что в XLSX «Сводный», но в JSON для BI/дашбордов без генерации файлов.
 
-        **Пример Use case:** BI-интеграция запрашивает данные по конкретным продуктам и отделам, строит графики прогресса и статусов оплат без скачивания XLSX.
+
+        **Пример Use case:** BI-интеграция запрашивает данные по конкретным продуктам и отделам, строит графики прогресса
+        и статусов оплат без скачивания XLSX.
+
+        '
       requestBody:
         required: false
         content:
@@ -40,17 +48,22 @@ paths:
                   type: array
                   items:
                     type: integer
-                  example: [59, 62]
+                  example:
+                  - 59
+                  - 62
                 group:
                   type: array
                   items:
                     type: integer
-                  example: [14]
+                  example:
+                  - 14
                 user_ids:
                   type: array
                   items:
                     type: integer
-                  example: [215, 216]
+                  example:
+                  - 215
+                  - 216
                 progress_from:
                   type: integer
                   minimum: 0
@@ -71,7 +84,8 @@ paths:
                       type: string
                   description: Фильтры по полям профиля (username, email, phone, department, position)
                   example:
-                    email: ["@example.com"]
+                    email:
+                    - '@example.com'
                 page:
                   type: integer
                   minimum: 1
@@ -85,15 +99,22 @@ paths:
                   example: 200
                 sort:
                   type: string
-                  enum: [-date_added, date_added, -progress, progress]
+                  enum:
+                  - -date_added
+                  - date_added
+                  - -progress
+                  - progress
                   default: -date_added
                   example: -date_added
             examples:
               consolidated_request:
                 summary: Фильтр по продуктам и прогрессу
                 value:
-                  product: [59, 62]
-                  group: [14]
+                  product:
+                  - 59
+                  - 62
+                  group:
+                  - 14
                   progress_from: 50
                   progress_to: 85
                   page: 1
@@ -106,59 +127,88 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          filters:
-                            type: object
+                - $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        filters:
+                          type: object
+                        items:
+                          type: array
                           items:
-                            type: array
-                            items:
-                              type: object
-                              properties:
-                                product:
-                                  type: object
-                                  properties:
-                                    id: {type: integer, example: 59}
-                                    title: {type: string, example: "Цифровые коммуникации"}
-                                status:
-                                  type: object
-                                  properties:
-                                    code: {type: integer, example: 4}
-                                    name: {type: string, example: "Оплачен"}
-                                amount:
-                                  type: number
-                                  example: 60000
-                                date_added_at:
-                                  $ref: './core/common/schemas.yaml#/components/schemas/DateValue'
-                                last_activity_at:
-                                  $ref: './core/common/schemas.yaml#/components/schemas/DateValue'
-                                registered_at:
-                                  $ref: './core/common/schemas.yaml#/components/schemas/DateValue'
-                                progress_percent:
-                                  type: integer
-                                  minimum: 0
-                                  maximum: 100
-                                  example: 72
-                                user:
-                                  type: object
-                                  properties:
-                                    id: {type: integer, example: 215}
-                                    name: {type: string, example: "Георгий"}
-                                    email: {type: string, format: email, example: "user@example.com"}
-                                    phone: {type: string, example: "+79999999952"}
-                                    department: {type: string, example: "Отдел разработки"}
-                                    position: {type: string, example: "Директор по продукту"}
-                          pagination:
                             type: object
                             properties:
-                              page: {type: integer, example: 1}
-                              per_page: {type: integer, example: 200}
-                              total: {type: integer, example: 8}
-                              total_pages: {type: integer, example: 1}
+                              product:
+                                type: object
+                                properties:
+                                  id:
+                                    type: integer
+                                    example: 59
+                                  title:
+                                    type: string
+                                    example: Цифровые коммуникации
+                              status:
+                                type: object
+                                properties:
+                                  code:
+                                    type: integer
+                                    example: 4
+                                  name:
+                                    type: string
+                                    example: Оплачен
+                              amount:
+                                type: number
+                                example: 60000
+                              date_added_at:
+                                $ref: ./core/common/schemas.yaml#/components/schemas/DateValue
+                              last_activity_at:
+                                $ref: ./core/common/schemas.yaml#/components/schemas/DateValue
+                              registered_at:
+                                $ref: ./core/common/schemas.yaml#/components/schemas/DateValue
+                              progress_percent:
+                                type: integer
+                                minimum: 0
+                                maximum: 100
+                                example: 72
+                              user:
+                                type: object
+                                properties:
+                                  id:
+                                    type: integer
+                                    example: 215
+                                  name:
+                                    type: string
+                                    example: Георгий
+                                  email:
+                                    type: string
+                                    format: email
+                                    example: user@example.com
+                                  phone:
+                                    type: string
+                                    example: '+79999999952'
+                                  department:
+                                    type: string
+                                    example: Отдел разработки
+                                  position:
+                                    type: string
+                                    example: Директор по продукту
+                        pagination:
+                          type: object
+                          properties:
+                            page:
+                              type: integer
+                              example: 1
+                            per_page:
+                              type: integer
+                              example: 200
+                            total:
+                              type: integer
+                              example: 8
+                            total_pages:
+                              type: integer
+                              example: 1
               examples:
                 sample:
                   summary: Пример успешного ответа
@@ -166,28 +216,54 @@ paths:
                     success: true
                     data:
                       filters:
-                        product: [59, 62]
+                        product:
+                        - 59
+                        - 62
                         progress_from: 50
                         progress_to: 85
                         fields:
-                          email: ["ya.ru"]
+                          email:
+                          - ya.ru
                       items:
-                        - product: {id: 59, title: "Цифровые коммуникации"}
-                          status: {code: 4, name: "Оплачен"}
-                          amount: 60000
-                          date_added_at: {unix: 1730399460, iso: "2024-10-31T13:11:00+03:00"}
-                          last_activity_at: {unix: null, iso: null}
-                          registered_at: {unix: 1698747060, iso: "2023-10-31T13:11:00+03:00"}
-                          progress_percent: 72
-                          user:
-                            id: 215
-                            name: "Георгий"
-                            email: "poooga@ya.ru"
-                            phone: "+79999999952"
-                            department: "Отдел разработки"
-                            position: "Директор по продукту"
-                      pagination: {page: 1, per_page: 200, total: 8, total_pages: 1}
+                      - product:
+                          id: 59
+                          title: Цифровые коммуникации
+                        status:
+                          code: 4
+                          name: Оплачен
+                        amount: 60000
+                        date_added_at:
+                          unix: 1730399460
+                          iso: '2024-10-31T13:11:00+03:00'
+                        last_activity_at:
+                          unix: null
+                          iso: null
+                        registered_at:
+                          unix: 1698747060
+                          iso: '2023-10-31T13:11:00+03:00'
+                        progress_percent: 72
+                        user:
+                          id: 215
+                          name: Георгий
+                          email: poooga@ya.ru
+                          phone: '+79999999952'
+                          department: Отдел разработки
+                          position: Директор по продукту
+                      pagination:
+                        page: 1
+                        per_page: 200
+                        total: 8
+                        total_pages: 1
         '400':
-          $ref: './core/common/responses.yaml#/components/responses/BadRequest'
+          $ref: ./core/common/responses.yaml#/components/responses/BadRequest
         '403':
-          $ref: './core/common/responses.yaml#/components/responses/Forbidden'
+          $ref: ./core/common/responses.yaml#/components/responses/Forbidden
+      security:
+      - BearerToken: []
+components:
+  securitySchemes:
+    BearerToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT Bearer token for authentication

@@ -1,292 +1,237 @@
-# Users Management API - 16 методов
-# Полный User Management блок из 45 приоритетных методов
-
 openapi: 3.1.0
 info:
   title: Users Management API
   version: 1.0.0
-  description: |
-    ## User Management — 16 методов
+  description: '## Users Management — 16 методов
 
-    Раздел User Management предназначен для синхронизации пользователей между вашей CRM/ERP и платформой Space. Каждый пользователь имеет профиль с контактной информацией, роль доступа, статус и может быть участником групп и курсов.
 
-    User представляет пользователя в системе Reezonly Space. Каждый пользователь имеет профиль с контактной информацией, роль доступа, статус и может быть участником групп и курсов.
+    Управление пользователями, ролями, импортом и интеграциями.
 
+    '
+servers:
+- url: /api/v1
+  description: API v1 endpoint
 tags:
-  - name: Users.Operations
-    description: |
-      ## Операции с пользователями
+- name: Users.Operations
+  description: '## Базовые операции с пользователями
 
-      **Назначение:** централизованно создать, прочитать, обновить и удалить пользователей, сохраняя синхронизацию с LMS и бизнес-ролями.
-      **Ключевые особенности:**
-      - Протоколированная магистраль CRUD по `X-API-Key` с фильтрами/пагинацией.
-      - Полный сет схем `SuccessResponse`, `BadRequest`, `Forbidden`, `NotFound`, и `User`.
-      - Поддержка массовых операций (`delete?ids[]=`) и отдельных просмотров.
-      **Пример Use case:** интегратор CRM запрашивает `/user/user/index` для списка, показывает карточку и вызывает `PUT /user/user/update`, чтобы синхронно обновить кастомные поля и статусы.
-  - name: Users.Courses
-    description: |
-      ## Управление доступом пользователей к курсам
 
-      **Назначение:** быстро назначать/отзывать доступ к курсам из внешней LMS/CRM.
-      **Ключевые особенности:** набор `POST /add-course`/`POST /delete-course` с телом `user_id` + `course_ids`, проверка доступности и массовые обновления.
-      **Пример Use case:** маркетолог настраивает доступ студентов к новому продукту: сначала назначает нужный набор курсов, затем отзывает старые.
-  - name: Users.Import
-    description: |
-      ## Импорт пользователей
+    **Назначение:** CRUD для пользователей, управление статусами и ролями.
 
-      **Назначение:** загружать сотни пользователей и отслеживать прогресс асинхронно.
-      **Ключевые особенности:** предварительный `preview` (multipart с шаблоном), `load` создаёт задачу, `get-import-progress` возвращает `ImportStatus`, дополнительные отчёты XLSX.
-      **Пример Use case:** после оплаты клиент загружает Excel, смотрит превью, запускает импорт и регулярно проверяет статус, пока не получит финальный файл через `/user/importreport/download`.
-  - name: Users.Fields
-    description: |
-      ## Кастомные поля пользователей
+    **Ключевые особенности:**
 
-      **Назначение:** предоставлять актуальные метаданные профиля (customer attributes, achievements, tokens).
-      **Ключевые особенности:** простой список полей `/dictionary/user/fields`, возвращаемая схема `UserField`.
-      **Пример Use case:** мобильное приложение запрашивает доступные поля, чтобы показать динамическую форму регистрации с нужными полями и валидацией.
+    - Фильтрация по `status` (int), `role`, `department`.
 
+    - Поддержка кастомных полей в `view` и `update`.
+
+    - Асинхронное создание (через очередь).
+
+    '
+- name: Users.Courses
+  description: '## Управление курсами пользователя
+
+
+    **Назначение:** назначение и отзыв курсов.
+
+    **Особенности:** методы `add-course` и `delete-course` работают асинхронно.
+
+    '
+- name: Users.Import
+  description: '## Импорт пользователей
+
+
+    **Назначение:** массовая загрузка пользователей из Excel.
+
+    **Процесс:** `load-template` -> `preview` -> `load` (commit) -> `get-import-progress`.
+
+    '
+- name: Users.Fields
+  description: '## Кастомные поля
+
+
+    **Назначение:** работа с дополнительными атрибутами профиля (`UserFieldKey`).
+
+    '
 paths:
-  # === Users.Operations ===
-
   /user/user/index:
     get:
-      tags: [Users.Operations]
+      tags:
+      - Users.Operations
       operationId: listUsers
-      summary: Получить список всех пользователей
-      description: Возвращает список всех пользователей с фильтрацией, сортировкой и пагинацией
+      summary: Получить список пользователей
+      description: 'Возвращает список пользователей с пагинацией и расширенными фильтрами.
+
+        Поддерживает сортировку и фильтрацию по группам, курсам и сумме оплат.
+
+        '
       parameters:
-        - $ref: './core/common/parameters.yaml#/components/parameters/Page'
-        - $ref: './core/common/parameters.yaml#/components/parameters/PerPage'
-        - $ref: './core/common/parameters.yaml#/components/parameters/Search'
+      - $ref: ./core/common/parameters.yaml#/components/parameters/Page
+      - $ref: ./core/common/parameters.yaml#/components/parameters/PerPage
+      - name: username
+        in: query
+        schema:
+          type: string
+        description: Поиск по имени или email
+      - name: status
+        in: query
+        description: 'Статус: 0=New, 10=Active, 20=Blocked, 30=Unconfirmed'
+        schema:
+          type: integer
+          enum:
+          - 0
+          - 10
+          - 20
+          - 30
+      - name: position
+        in: query
+        schema:
+          type: string
+        description: Фильтр по должности
+      - name: department
+        in: query
+        schema:
+          type: string
+        description: Фильтр по отделу
+      - name: groupIds
+        in: query
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Фильтр по ID групп
+      - name: courseIds
+        in: query
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Фильтр по ID курсов (имеет доступ)
+      - name: sort
+        in: query
+        schema:
+          type: string
+          default: -updated_at
+          example: -created_at
+        description: 'Поле сортировки: username, email, position, department, status, courseCount, created_at, updated_at,
+          payment_sum. Префикс ''-'' для убывания.'
       responses:
         '200':
-          description: Список пользователей успешно получен
+          description: Список пользователей
           content:
             application/json:
               schema:
                 allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - $ref: '#/components/schemas/UserList'
-              examples:
-                default:
-                  summary: Пагинированный список пользователей
-                  value:
-                    success: true
+                - $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
+                - type: object
+                  properties:
                     data:
-                      pagination:
-                        total: 1520
-                        page: 1
-                        per_page: 20
-                      items:
-                        - id: 137
-                          email: user@example.com
-                          username: "Иван Иванов"
-                          role: student
-                          status: active
-                          created_at: "2024-01-15T10:30:00Z"
-                          updated_at: "2024-02-01T09:10:00Z"
-                        - id: 138
-                          email: admin@example.com
-                          username: "Мария Админова"
-                          role: admin
-                          status: active
-                          created_at: "2024-01-12T08:00:00Z"
-                          updated_at: "2024-02-02T12:00:00Z"
-        '400':
-          $ref: './core/common/responses.yaml#/components/responses/BadRequest'
-
+                      type: object
+                      properties:
+                        pagination:
+                          $ref: ./core/common/schemas.yaml#/components/schemas/PaginationMeta
+                        items:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/UserListItem'
+        '422':
+          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+        '500':
+          $ref: ./core/common/responses.yaml#/components/responses/InternalError
+      security:
+      - BearerToken: []
   /user/user/admin:
     get:
-      tags: [Users.Operations]
+      tags:
+      - Users.Operations
       operationId: listAdminUsers
       summary: Получить список администраторов
-      description: Возвращает список всех пользователей с правами администратора
+      description: Аналогичен методу index, но возвращает только пользователей с правами администратора.
       parameters:
-        - $ref: './core/common/parameters.yaml#/components/parameters/Page'
-        - $ref: './core/common/parameters.yaml#/components/parameters/PerPage'
+      - $ref: ./core/common/parameters.yaml#/components/parameters/Page
+      - $ref: ./core/common/parameters.yaml#/components/parameters/PerPage
+      - name: username
+        in: query
+        description: Поиск по имени или email
+        schema:
+          type: string
+      - name: sort
+        in: query
+        description: Поле сортировки
+        schema:
+          type: string
+          default: -updated_at
       responses:
         '200':
-          description: Список администраторов успешно получен
+          description: Список администраторов
           content:
             application/json:
               schema:
                 allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - $ref: '#/components/schemas/UserList'
-              examples:
-                default:
-                  summary: Только пользователи с ролями админа
-                  value:
-                    success: true
+                - $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
+                - type: object
+                  properties:
                     data:
-                      pagination:
-                        total: 2
-                        page: 1
-                        per_page: 50
-                      items:
-                        - id: 5
-                          email: "cto@example.com"
-                          username: "Сергей Техдир"
-                          role: admin
-                          status: active
-                          created_at: "2023-10-10T07:00:00Z"
-                          updated_at: "2024-02-02T11:00:00Z"
-                        - id: 7
-                          email: "owner@example.com"
-                          username: "Анна Владельцева"
-                          role: admin
-                          status: active
-                          created_at: "2023-09-01T09:30:00Z"
-                          updated_at: "2024-02-03T09:15:00Z"
-        '400':
-          $ref: './core/common/responses.yaml#/components/responses/BadRequest'
-        '403':
-          $ref: './core/common/responses.yaml#/components/responses/Forbidden'
-
+                      type: object
+                      properties:
+                        pagination:
+                          $ref: ./core/common/schemas.yaml#/components/schemas/PaginationMeta
+                        items:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/UserListItem'
+        '422':
+          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+        '500':
+          $ref: ./core/common/responses.yaml#/components/responses/InternalError
+      security:
+      - BearerToken: []
   /user/user/view:
     get:
-      tags: [Users.Operations]
+      tags:
+      - Users.Operations
       operationId: getUser
-      summary: Получить детальную информацию о пользователе
-      description: Возвращает полную информацию о пользователе включая его группы, курсы и кастомные поля
+      summary: Получить профиль пользователя
+      description: Возвращает детальную информацию о пользователе, включая курсы, сертификаты и кастомные поля.
       parameters:
-        - $ref: './core/common/parameters.yaml#/components/parameters/Id'
+      - $ref: ./core/common/parameters.yaml#/components/parameters/Id
       responses:
         '200':
-          description: Успешно получена информация о пользователе
+          description: Профиль пользователя
           content:
             application/json:
               schema:
                 allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          item:
-                            $ref: './core/common/schemas.yaml#/components/schemas/User'
-              examples:
-                default:
-                  summary: Карточка пользователя с группами и курсами
-                  value:
-                    success: true
+                - $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
+                - type: object
+                  properties:
                     data:
-                      item:
-                        id: 137
-                        username: "Иван Иванов"
-                        email: "user@example.com"
-                        role: student
-                        status: active
-                        department: "Продажи"
-                        position: "Менеджер"
-                        custom_fields:
-                          city: "Москва"
-                          experience_years: 3
-                        groups:
-                          - id: 12
-                            name: "Sales / B2B"
-                          - id: 18
-                            name: "Москва"
-                        courses:
-                          - id: 501
-                            title: "Онбординг"
-                          - id: 502
-                            title: "CRM Advanced"
-                        created_at: "2024-01-15T10:30:00Z"
-                        updated_at: "2024-02-01T09:10:00Z"
+                      type: object
+                      properties:
+                        item:
+                          $ref: '#/components/schemas/UserDetail'
         '404':
-          $ref: './core/common/responses.yaml#/components/responses/NotFound'
-
-  /dictionary/user/fields:
-    get:
-      tags: [Users.Fields]
-      operationId: listUserFields
-      summary: Получить список кастомных полей пользователя
-      description: Возвращает все доступные кастомные поля профилей пользователей
-      responses:
-        '200':
-          description: Успешно получен список кастомных полей
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      items:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/UserField'
-              examples:
-                default:
-                  summary: Справочник пользовательских полей
-                  value:
-                    success: true
-                    items:
-                      - id: 789
-                        name: "experience_years"
-                        label: "Опыт работы (лет)"
-                        type: number
-                        required: false
-                        enabled: true
-                        validation_rules:
-                          min: 0
-                          max: 50
-                        options: []
-                      - id: 790
-                        name: "city"
-                        label: "Город"
-                        type: string
-                        required: false
-                        enabled: true
-                        validation_rules: {}
-                        options: []
-        '400':
-          $ref: './core/common/responses.yaml#/components/responses/BadRequest'
-        '403':
-          $ref: './core/common/responses.yaml#/components/responses/Forbidden'
-
+          $ref: ./core/common/responses.yaml#/components/responses/NotFound
+        '500':
+          $ref: ./core/common/responses.yaml#/components/responses/InternalError
+      security:
+      - BearerToken: []
   /user/user/create:
     post:
-      tags: [Users.Operations]
+      tags:
+      - Users.Operations
       operationId: createUser
-      summary: Создать нового пользователя
-      description: |
-        Создает нового пользователя в системе с возможностью назначения роли.
-        Автоматически синхронизирует пользователя с LMS и отправляет уведомления.
+      summary: Создать пользователя
+      description: 'Создает нового пользователя. Пароль обязателен.
 
-        **Валидация:**
-        - Email должен быть уникальным в системе
-        - Username обязателен, минимальная длина 2 символа, максимальная 255
-        - Роль должна существовать в системе (не из списка RESTRICTED_ROLES)
-        - Проверяется лимит пользователей тарифа
+        Привязка к группам и курсам при создании не поддерживается (используйте отдельные методы).
 
-        **Бизнес-логика:**
-        - При создании администратора отправляется email с паролем
-        - Для обычных пользователей также отправляется уведомление
-        - Автоматическая синхронизация с LMS через очередь
+        '
       requestBody:
         required: true
         content:
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/UserForm'
-            examples:
-              basic_user:
-                summary: Создание обычного пользователя
-                value:
-                  username: "Иван Петров"
-                  email: "ivan.petrov@example.com"
-                  department: "IT отдел"
-                  position: "Разработчик"
-              admin_user:
-                summary: Создание администратора
-                value:
-                  username: "Мария Сидорова"
-                  email: "maria.sidorова@example.com"
-                  role: "admin"
-                  password: "SecurePassword123!"
+              $ref: '#/components/schemas/UserCreateForm'
       responses:
         '201':
           description: Пользователь успешно создан
@@ -294,239 +239,166 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          user_id:
-                            type: integer
-                            example: 123
-              examples:
-                user_created:
-                  summary: Пользователь создан
-                  value:
-                    success: true
+                - $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
+                - type: object
+                  properties:
                     data:
-                      user_id: 123
-        '400':
-          description: Ошибка валидации
-          content:
-            application/json:
-              schema:
-                $ref: './core/common/schemas.yaml#/components/schemas/ErrorResponse'
-              examples:
-                validation_error:
-                  summary: Ошибка валидации email
-                  value:
-                    success: false
-                    errors:
-                      email: ["Email адрес уже занят"]
-                user_limit_error:
-                  summary: Достигнут лимит пользователей
-                  value:
-                    success: false
-                    errors:
-                      username: ["New user registration is not available"]
-        '403':
-          description: Недостаточно прав для создания пользователя
-          content:
-            application/json:
-              schema:
-                $ref: './core/common/schemas.yaml#/components/schemas/ErrorResponse'
-              example:
-                success: false
-                errors:
-                  permission: ["Insufficient permissions"]
-
+                      type: object
+                      properties:
+                        user_id:
+                          type: integer
+                          example: 1
+        '422':
+          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+        '500':
+          $ref: ./core/common/responses.yaml#/components/responses/InternalError
+      security:
+      - BearerToken: []
   /user/user/update:
     put:
-      tags: [Users.Operations]
+      tags:
+      - Users.Operations
       operationId: updateUser
-      summary: Обновить данные пользователя
-      description: Обновляет информацию о существующем пользователе
+      summary: Обновить пользователя
+      description: Обновляет данные профиля, включая кастомные поля.
       parameters:
-        - $ref: './core/common/parameters.yaml#/components/parameters/Id'
+      - $ref: ./core/common/parameters.yaml#/components/parameters/Id
       requestBody:
         required: true
         content:
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/UserForm'
-            examples:
-              update_profile:
-                summary: Обновление профиля и статуса
-                value:
-                  username: "Ирина Климова"
-                  status: "active"
-                  role: "editor"
-                  department: "Маркетинг"
-                  position: "Контент-редактор"
-              update_memberships:
-                summary: Обновление групп и курсов
-                value:
-                  group_ids: [12, 18]
-                  course_ids: [501, 550]
+              $ref: '#/components/schemas/UserUpdateForm'
       responses:
         '200':
-          description: Пользователь обновлён
+          description: Пользователь обновлен
           content:
             application/json:
               schema:
                 allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          user_id:
-                            type: integer
-                            example: 123
-              examples:
-                updated:
-                  summary: Обновление роли и статуса
-                  value:
-                    success: true
+                - $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
+                - type: object
+                  properties:
                     data:
-                      user_id: 123
-        '400':
-          $ref: './core/common/responses.yaml#/components/responses/ValidationError'
-        '404':
-          $ref: './core/common/responses.yaml#/components/responses/NotFound'
-
+                      type: object
+                      properties:
+                        user_id:
+                          type: integer
+                          example: 1
+        '422':
+          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+        '403':
+          $ref: ./core/common/responses.yaml#/components/responses/Forbidden
+        '500':
+          $ref: ./core/common/responses.yaml#/components/responses/InternalError
+      security:
+      - BearerToken: []
   /user/user/delete:
     delete:
-      tags: [Users.Operations]
+      tags:
+      - Users.Operations
       operationId: deleteUser
-      summary: Удалить пользователей
-      description: Удаляет одного или нескольких пользователей
+      summary: Удалить пользователя(ей)
+      description: Удаляет одного или нескольких пользователей.
       parameters:
-        - $ref: './core/common/parameters.yaml#/components/parameters/Ids'
+      - name: ids
+        in: query
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Массив ID пользователей для удаления (опционально, если не передано - ошибка?)
       responses:
         '200':
-          description: Пользователь(и) удалены
+          description: Успешное удаление
           content:
             application/json:
               schema:
-                $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-              examples:
-                bulk_delete:
-                  summary: Удалено несколько пользователей
-                  value:
-                    success: true
-        '400':
-          $ref: './core/common/responses.yaml#/components/responses/BadRequest'
-
+                $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
+        '401':
+          $ref: ./core/common/responses.yaml#/components/responses/Unauthorized
+        '403':
+          $ref: ./core/common/responses.yaml#/components/responses/Forbidden
+        '500':
+          $ref: ./core/common/responses.yaml#/components/responses/InternalError
+      security:
+      - BearerToken: []
+  /dictionary/user/fields:
+    get:
+      tags:
+      - Users.Fields
+      operationId: listUserFields
+      summary: Получить список кастомных полей
+      description: Возвращает конфигурацию дополнительных полей профиля пользователя.
+      security:
+      - BearerToken: []
+      responses:
+        '200':
+          description: Список полей
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserFieldDefinition'
+        '401':
+          $ref: ./core/common/responses.yaml#/components/responses/Unauthorized
   /dictionary/user/statuses:
     get:
-      tags: [Users.Operations]
+      tags:
+      - Users.Operations
       operationId: listUserStatuses
-      summary: Получить расширенные статусы пользователей
-      description: Возвращает все возможные статусы пользователей в системе
+      summary: Справочник статусов
+      description: Возвращает список всех возможных статусов пользователей (New, Active, Blocked, Unconfirmed) с их ID для
+        использования в фильтрах и при создании пользователей.
+      security:
+      - BearerToken: []
       responses:
         '200':
-          description: Успешно получен список статусов пользователей
+          description: Список статусов
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      items:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/UserStatus'
-              examples:
-                default:
-                  summary: Справочник статусов
-                  value:
-                    success: true
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  items:
+                    type: array
                     items:
-                      - id: active
-                        name: "Активный"
-                        description: "Полный доступ к платформе"
-                        category: "access"
-                        color: "#2ea44f"
-                        is_default: true
-                      - id: inactive
-                        name: "Неактивный"
-                        description: "Нет доступа, архив"
-                        category: "access"
-                        color: "#9ca3af"
-                        is_default: false
-                      - id: blocked
-                        name: "Заблокирован"
-                        description: "Доступ закрыт администратором"
-                        category: "blocked"
-                        color: "#ef4444"
-                        is_default: false
-        '400':
-          $ref: './core/common/responses.yaml#/components/responses/BadRequest'
-        '403':
-          $ref: './core/common/responses.yaml#/components/responses/Forbidden'
-
-  # === Users.Courses ===
-
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        name:
+                          type: string
+                          example: John Doe
+        '401':
+          $ref: ./core/common/responses.yaml#/components/responses/Unauthorized
   /user/user/add-course:
     post:
-      tags: [Users.Courses]
+      tags:
+      - Users.Courses
       operationId: assignUserCourse
-      summary: Назначить курсы пользователям
-      description: Массово назначает курсы списку пользователей
+      summary: Назначить курс пользователю
+      description: Назначает один или несколько курсов одному или нескольким пользователям. Операция выполняется асинхронно.
+        Если пользователь уже имеет доступ к курсу, отметка `new=false` указывает на существующее назначение.
       requestBody:
-        required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
-              type: object
-              required: [userIds, courses]
-              properties:
-                userIds:
-                  type: array
-                  minItems: 1
-                  items:
-                    type: integer
-                    minimum: 1
-                  description: Список ID пользователей для назначения
-                  example: [123, 124]
-                courses:
-                  type: array
-                  minItems: 1
-                  items:
-                    type: object
-                    required: [id]
-                    properties:
-                      id:
-                        type: integer
-                        minimum: 1
-                        description: ID курса
-                        example: 501
-                      learning_group_id:
-                        type: integer
-                        minimum: 1
-                        description: ID учебной группы (если назначается в конкретную группу)
-                        example: 10
-                      group_name:
-                        type: string
-                        description: Название группы, если группы ещё нет
-                        example: "Support"
-                  description: Список курсов для назначения, с опциональной привязкой к учебной группе или имени группы
-            examples:
-              assign_courses:
-                summary: Массовое назначение курсов двум пользователям
-                value:
-                  userIds: [123, 124]
-                  courses:
-                    - id: 501
-                      learning_group_id: 10
-                    - id: 550
-                      group_name: "Support"
+              $ref: '#/components/schemas/AddCourseForm'
       responses:
         '200':
-          description: Курсы назначены
+          description: Курс назначен
           content:
             application/json:
               schema:
@@ -537,96 +409,43 @@ paths:
                     example: true
                   results:
                     type: array
-                    description: Результат по каждому назначению
                     items:
                       type: object
                       properties:
-                          userId:
-                            type: integer
-                            example: 501
-                          courseId:
-                            type: integer
-                            example: 901
-                          result:
-                            type: boolean
-                            example: true
-                          new:
-                            type: boolean
-                            example: false
-              examples:
-                assigned:
-                  summary: Успешное назначение
-                  value:
-                    success: true
-                    results:
-                      - userId: 123
-                        courseId: 501
-                        result: true
-                        new: true
-                      - userId: 124
-                        courseId: 550
-                        result: true
-                        new: false
-        '400':
-          $ref: './core/common/responses.yaml#/components/responses/BadRequest'
-
+                        userId:
+                          type: integer
+                          example: 1
+                        courseId:
+                          type: integer
+                          example: 1
+                        result:
+                          type: boolean
+                          example: true
+                        new:
+                          type: boolean
+                          example: true
+        '422':
+          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+        '500':
+          $ref: ./core/common/responses.yaml#/components/responses/InternalError
+      security:
+      - BearerToken: []
   /user/user/delete-course:
     post:
-      tags: [Users.Courses]
+      tags:
+      - Users.Courses
       operationId: deleteUserCourse
-      summary: Отозвать доступ к курсам у пользователей
-      description: Массово отзывает доступ к курсам у списка пользователей
+      summary: Отозвать курс у пользователя
+      description: Удаляет доступ одного или нескольких пользователей к одному или нескольким курсам. После удаления прогресс
+        прохождения курса сохраняется, но пользователь больше не может получать доступ к материалам и выполнять задания курса.
       requestBody:
-        required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
-              type: object
-              required: [userIds, courses]
-              properties:
-                userIds:
-                  type: array
-                  minItems: 1
-                  items:
-                    type: integer
-                    minimum: 1
-                  description: Список ID пользователей для отзыва
-                  example: [123, 124]
-                courses:
-                  type: array
-                  minItems: 1
-                  items:
-                    type: object
-                    required: [id]
-                    properties:
-                      id:
-                        type: integer
-                        minimum: 1
-                        description: ID курса
-                        example: 501
-                      learning_group_id:
-                        type: integer
-                        minimum: 1
-                        description: ID учебной группы (если нужно отозвать только в группе)
-                        example: 10
-                      group_name:
-                        type: string
-                        description: Название группы, если отозвать по имени
-                        example: "Support"
-                  description: Список курсов для отзыва, с опциональной привязкой к учебной группе или имени группы
-            examples:
-              revoke_courses:
-                summary: Отзыв курсов у нескольких пользователей
-                value:
-                  userIds: [123, 124]
-                  courses:
-                    - id: 501
-                      learning_group_id: 10
-                    - id: 550
-                      group_name: "Support"
+              $ref: '#/components/schemas/AddCourseForm'
       responses:
         '200':
-          description: Курсы отозваны
+          description: Курс отозван
           content:
             application/json:
               schema:
@@ -636,673 +455,461 @@ paths:
                     type: boolean
                     example: true
                   results:
-                    oneOf:
-                      - type: array
-                        items:
-                          type: object
-                          properties:
-                            userId:
-                              type: integer
-                              example: 501
-                            courseId:
-                              type: integer
-                              example: 901
-                            result:
-                              type: boolean
-                              example: true
-                      - type: integer
-                        description: Количество удалённых записей
-              examples:
-                revoked:
-                  summary: Успешный отзыв
-                  value:
-                    success: true
-                    results: 2
-        '400':
-          $ref: './core/common/responses.yaml#/components/responses/BadRequest'
-
-# === Users.Import ===
-
-  /user/user/preview:
-    post:
-      tags: [Users.Import]
-      operationId: getUserImportPreview
-      summary: Предпросмотр импорта Excel-файла
-      description: Анализирует Excel файл и показывает preview данных для импорта
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              required: [fileImport]
-              properties:
-                fileImport:
-                  type: string
-                  format: binary
-                  description: Excel файл для импорта (.xlsx, .xls)
-                updateMode:
-                  type: boolean
-                  description: Обновлять существующих пользователей
-                  example: false
-            examples:
-              sample_file:
-                summary: Excel с 3 пользователями
-                value:
-                  fileImport: "data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,UEsDBBQA..."
-                  updateMode: false
-      responses:
-        '200':
-          description: Успешно проанализирован файл
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          preview:
-                            type: object
-              examples:
-                preview_ok:
-                  summary: Валидный файл, без ошибок
-                  value:
-                    success: true
-                    data:
-                      preview:
-                        total_rows: 3
-                        valid_rows: 3
-                        errors: []
-        '400':
-          $ref: './core/common/responses.yaml#/components/responses/BadRequest'
-
-  /user/user/load:
-    post:
-      tags: [Users.Import]
-      operationId: createUserImport
-      summary: Запустить импорт пользователей (асинхронно)
-      description: Запускает фоновый процесс импорта пользователей из Excel файла
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              required: [fileImport]
-              properties:
-                fileImport:
-                  type: string
-                  format: binary
-                  description: Excel файл для импорта
-                updateMode:
-                  type: boolean
-                  default: false
-                  description: Обновлять существующих пользователей
-                  example: true
-            examples:
-              start_import:
-                summary: Импорт с обновлением существующих пользователей
-                value:
-                  fileImport: "data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,UEsDBBQA..."
-                  updateMode: true
-      responses:
-        '200':
-          description: Импорт успешно запущен
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          jobId:
-                            type: integer
-                            example: 1201
-                          reportKey:
-                            type: string
-                            example: "import-users-2025-02-10.xlsx"
-              examples:
-                import_started:
-                  summary: Импорт принят и обрабатывается
-                  value:
-                    success: true
-                    message: "Commit job queued"
-                    data:
-                      jobId: 1024
-                      reportKey: "imp-2025-02-10-001"
-        '400':
-          $ref: './core/common/responses.yaml#/components/responses/BadRequest'
-
-  /user/user/get-import-progress:
-    get:
-      tags: [Users.Import]
-      operationId: getUserImportProgress
-      summary: Получить статус текущего импорта
-      description: Возвращает текущий статус и прогресс импорта пользователей
-      parameters:
-        - name: id
-          in: query
-          required: true
-          schema:
-            type: string
-            example: "imp-2025-02-10-001"
-          description: ID импорта (из ответа метода load)
-      responses:
-        '200':
-          description: Успешно получен статус импорта
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          progress:
-                            type: integer
-                            description: Процент завершения импорта
-                            example: 42
-                          report:
-                            oneOf:
-                              - type: 'null'
-                              - type: object
-                                properties:
-                                  successCount:
-                                    type: integer
-                                    example: 118
-                                  errorCount:
-                                    type: integer
-                                    example: 2
-              examples:
-                in_progress:
-                  summary: Импорт в процессе
-                  value:
-                    success: true
-                    message: "Processing"
-                    data:
-                      progress: 42
-                      report: null
-                completed:
-                  summary: Импорт завершён
-                  value:
-                    success: true
-                    message: "Completed"
-                    data:
-                      progress: 100
-                      report:
-                        successCount: 118
-                        errorCount: 2
-        '400':
-          $ref: './core/common/responses.yaml#/components/responses/BadRequest'
-        '404':
-          $ref: './core/common/responses.yaml#/components/responses/NotFound'
-
+                    type: integer
+                    description: Количество удаленных записей
+                    example: 1
+        '422':
+          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+        '500':
+          $ref: ./core/common/responses.yaml#/components/responses/InternalError
+      security:
+      - BearerToken: []
   /user/user/load-template:
     get:
-      tags: [Users.Import]
+      tags:
+      - Users.Import
       operationId: downloadUserImportTemplate
-      summary: Скачать шаблон Excel для импорта
-      description: Возвращает Excel файл с шаблоном для импорта пользователей
+      summary: Скачать шаблон импорта (XLSX)
+      description: Возвращает Excel-шаблон для массового импорта пользователей. Содержит необходимые колонки (username, email,
+        password, department, position и др.) с примерами и подсказками. Используйте этот файл как основу для подготовки данных
+        к импорту.
+      security:
+      - BearerToken: []
       responses:
         '200':
-          description: Успешно скачан файл шаблона
+          description: Файл шаблона
           content:
             application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
               schema:
                 type: string
                 format: binary
-              examples:
-                template:
-                  summary: Excel-шаблон для импорта
-                  value: "UEsDBBQACAgI..."  # base64 заглушка файла
-        '400':
-          $ref: './core/common/responses.yaml#/components/responses/BadRequest'
-        '404':
-          $ref: './core/common/responses.yaml#/components/responses/NotFound'
-
-# === Отчёты об импорте ===
-
-  /user/import-report/index:
-    get:
-      tags: [Users.Import]
-      operationId: listUserImportReports
-      summary: Получить список завершённых отчётов импорта
-      description: Возвращает список всех завершенных отчётов импорта пользователей
-      parameters:
-        - $ref: './core/common/parameters.yaml#/components/parameters/Page'
-        - $ref: './core/common/parameters.yaml#/components/parameters/PerPage'
+        '500':
+          $ref: ./core/common/responses.yaml#/components/responses/InternalError
+  /user/user/preview:
+    post:
+      tags:
+      - Users.Import
+      operationId: getUserImportPreview
+      summary: Предварительный просмотр импорта
+      description: Валидирует загруженный файл и показывает предварительный просмотр данных, которые будут импортированы.
+        Помогает обнаружить ошибки в формате или содержимом перед фактическим импортом. Возвращает список строк и ошибок валидации
+        для каждой записи.
+      security:
+      - BearerToken: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                fileImport:
+                  type: string
+                  format: binary
+                  example: example
+                updateMode:
+                  type: boolean
+                  example: true
       responses:
         '200':
-          description: Успешно получен список отчётов импорта
+          description: Результат превью
           content:
             application/json:
               schema:
                 allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          pagination:
-                            $ref: './core/common/schemas.yaml#/components/schemas/PaginationMeta'
-                          items:
-                            type: array
-                            items:
-                              $ref: '#/components/schemas/ImportReport'
-              examples:
-                reports:
-                  summary: Последние отчёты
-                  value:
-                    success: true
+                - $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
+                - type: object
+                  properties:
                     data:
-                      pagination:
-                        total: 2
-                        page: 1
-                        per_page: 20
-                      items:
-                        - id: 1201
-                          file: "import-users-2025-02-10.xlsx"
-                          status: "completed"
-                          progress: 100
-                          success_count: 98
-                          error_count: 2
-                          created_at: "2025-02-10T10:00:00Z"
-                          updated_at: "2025-02-10T10:05:30Z"
-                        - id: 1190
-                          file: "import-users-2025-02-08.xlsx"
-                          status: "failed"
-                          progress: 100
-                          success_count: 0
-                          error_count: 120
-                          created_at: "2025-02-08T08:20:00Z"
-                          updated_at: "2025-02-08T08:21:10Z"
-        '400':
-          $ref: './core/common/responses.yaml#/components/responses/BadRequest'
-
-  /user/importreport/download:
-    get:
-      tags: [Users.Import]
-      operationId: downloadUserImportReport
-      summary: Скачать XLSX с результатами импорта
-      description: Возвращает Excel файл с детальными результатами импорта
-      parameters:
-        - $ref: './core/common/parameters.yaml#/components/parameters/Id'
+                      type: object
+                      properties:
+                        preview:
+                          type: object
+                          description: Структура превью (строки, ошибки)
+        '500':
+          $ref: ./core/common/responses.yaml#/components/responses/InternalError
+  /user/user/load:
+    post:
+      tags:
+      - Users.Import
+      operationId: createUserImport
+      summary: Запустить импорт
+      description: Запускает асинхронный процесс импорта пользователей из загруженного файла. Возвращает `jobId` для отслеживания
+        прогресса и `reportKey` для получения результатов. Используйте метод `get-import-progress` для мониторинга и получения
+        финального отчета.
+      security:
+      - BearerToken: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                fileImport:
+                  type: string
+                  format: binary
+                  example: example
+                updateMode:
+                  type: boolean
+                  example: true
       responses:
         '200':
-          description: Успешно скачан файл отчёта импорта
+          description: Задача создана
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        jobId:
+                          type: integer
+                          example: 1
+                        reportKey:
+                          type: string
+                          example: example
+        '422':
+          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+        '500':
+          $ref: ./core/common/responses.yaml#/components/responses/InternalError
+  /user/user/get-import-progress:
+    get:
+      tags:
+      - Users.Import
+      operationId: getUserImportProgress
+      summary: Получить прогресс импорта
+      description: Возвращает текущий статус и прогресс импорта пользователей. Параметр `id` должен содержать `reportKey`
+        из ответа метода `load`. По завершении импорта включает финальный отчет с результатами (количество успешно импортированных,
+        ошибки, предупреждения).
+      security:
+      - BearerToken: []
+      parameters:
+      - name: id
+        in: query
+        required: true
+        schema:
+          type: string
+        description: Report Key из метода load
+      responses:
+        '200':
+          description: Прогресс
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        progress:
+                          type: integer
+                          example: 1
+                        report:
+                          type:
+                          - object
+                          - 'null'
+        '404':
+          $ref: ./core/common/responses.yaml#/components/responses/NotFound
+  /user/import-report/index:
+    get:
+      tags:
+      - Users.Import
+      operationId: listUserImportReports
+      summary: История импортов
+      description: Возвращает список всех выполненных импортов пользователей с пагинацией. Каждый отчет содержит информацию
+        о дате импорта, количестве обработанных записей, количестве ошибок и результатах. Используйте метод `downloadUserImportReport`
+        для получения детального отчета в формате Excel.
+      security:
+      - BearerToken: []
+      parameters:
+      - $ref: ./core/common/parameters.yaml#/components/parameters/Page
+      - $ref: ./core/common/parameters.yaml#/components/parameters/PerPage
+      - name: type
+        in: query
+        schema:
+          type: integer
+        description: Фильтр по типу отчета
+      responses:
+        '200':
+          description: Список отчетов
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        pagination:
+                          $ref: ./core/common/schemas.yaml#/components/schemas/PaginationMeta
+                        items:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/ImportReport'
+        '422':
+          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+        '500':
+          $ref: ./core/common/responses.yaml#/components/responses/InternalError
+  /user/importreport/download:
+    get:
+      tags:
+      - Users.Import
+      operationId: downloadUserImportReport
+      summary: Скачать отчет об импорте
+      description: Возвращает детальный отчет об импорте в формате Excel. Отчет содержит информацию о каждой обработанной
+        строке (успех/ошибка), данные пользователя и результат обработки. Используйте ID отчета из метода `listUserImportReports`.
+      security:
+      - BearerToken: []
+      parameters:
+      - name: id
+        in: query
+        description: ID отчета об импорте
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Файл отчета
           content:
             application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
               schema:
                 type: string
                 format: binary
-              examples:
-                report_file:
-                  summary: XLSX-отчёт об импорте
-                  value: "UEsDBBQACAgI..."  # base64 заглушка Excel
-        '404':
-          $ref: './core/common/responses.yaml#/components/responses/NotFound'
-
-# ========================================
-# Компоненты для Users модуля
-# ========================================
+        '500':
+          $ref: ./core/common/responses.yaml#/components/responses/InternalError
 components:
   schemas:
-    # Request схемы
-    UserForm:
-      # Используется для multipart/form-data в create/update
+    UserListItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: john_doe
+        email:
+          type: string
+          example: user@example.com
+        department:
+          type:
+          - string
+          - 'null'
+          example: Marketing
+        position:
+          type:
+          - string
+          - 'null'
+          example: Manager
+        photo:
+          type:
+          - string
+          - 'null'
+          example: https://example.com/photo.jpg
+        status:
+          type: integer
+          description: 0=New, 10=Active, 20=Blocked, 30=Unconfirmed
+          example: 10
+        created_at:
+          type: integer
+          example: 1699459200
+        updated_at:
+          type: integer
+          example: 1699459200
+        role:
+          type: string
+          example: admin
+        educationAccess:
+          type: boolean
+          example: true
+        courseCount:
+          type: integer
+          example: 5
+        payment_sum:
+          type: number
+          example: 2999.99
+        groups:
+          type: array
+          items:
+            $ref: ./groups.yaml#/components/schemas/Group
+    UserDetail:
       allOf:
-        - $ref: '#/components/schemas/CreateUserRequest'
-        - type: object
-          properties:
-            id:
-              type: integer
-              minimum: 1
-              example: 101
-              description: ID пользователя (только для update)
-            avatar:
-              type: string
-              format: binary
-              description: Аватар пользователя (опционально)
-
-    CreateUserRequest:
+      - $ref: '#/components/schemas/UserListItem'
+      - type: object
+        properties:
+          phone:
+            type:
+            - string
+            - 'null'
+            example: '+79991234567'
+          waitRequest:
+            type: array
+            items:
+              type: object
+          certificates:
+            type: array
+            items:
+              $ref: ./certificates.yaml#/components/schemas/Certificate
+          courses:
+            type: array
+            items:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  example: 1
+                title:
+                  type: string
+                  example: example
+                status:
+                  type: integer
+                  example: 10
+                progress:
+                  type: number
+                  example: 75.5
+                amount:
+                  type: number
+                  example: 2999.99
+                group:
+                  type:
+                  - string
+                  - 'null'
+                  example: Group 1
+          userFields:
+            type: array
+            items:
+              $ref: '#/components/schemas/UserFieldDefinition'
+    UserFieldDefinition:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          description: System name (key)
+          example: John Doe
+        title:
+          type: string
+          description: Display name
+          example: Advanced Python
+        type:
+          type: integer
+          description: Field type code
+          example: 1
+    UserCreateForm:
       type: object
       required:
-        - username
-        - email
+      - username
+      - email
+      - password
       properties:
         username:
           type: string
-          minLength: 2
-          maxLength: 255
-          description: |
-            Имя пользователя. Обязательное поле.
-            - Минимум 2 символа
-            - Максимум 255 символов
-            - Trim automatically applied
-          example: "Иван Петров"
+          example: john_doe
         email:
           type: string
           format: email
-          description: |
-            Email пользователя. Должен быть уникальным в системе.
-            - Trim automatically applied
-            - Valid email format required
-          example: "ivan.petrov@example.com"
+          example: user@example.com
         password:
           type: string
-          description: |
-            Пароль пользователя. Если не указан, генерируется автоматически.
-            - Для существующих сотрудников не требуется
-            - Для новых пользователей рекомендуется задавать
-          example: "SecurePassword123!"
+          example: example
         role:
           type: string
-          description: |
-            Роль пользователя в системе. По умолчанию 'user'.
-            - Не может быть из списка RESTRICTED_ROLES
-            - Доступные роли: superadmin, admin, editor, curator, student
-          example: "student"
-          enum: [superadmin, admin, editor, curator, student]
+          example: admin
         department:
           type: string
-          description: |
-            Отдел пользователя. Синхронизируется с LMS.
-          example: "IT отдел"
+          example: Marketing
         position:
           type: string
-          description: |
-            Должность пользователя. Синхронизируется с LMS.
-          example: "Разработчик"
-        phone:
-          type: string
-          description: |
-            Телефон пользователя
-          example: "+7 (999) 123-45-67"
-        custom_fields:
-          type: object
-          description: |
-            Дополнительные поля пользователя (custom fields)
-            Ключи - это имена полей, значения - данные
-          example:
-            city: "Москва"
-            experience: "5 лет"
-            skills: ["PHP", "JavaScript", "MySQL"]
-        group_ids:
-          type: array
-          description: Список идентификаторов групп, к которым добавляется пользователь
-          items:
-            type: integer
-            minimum: 1
-          example: [12, 34]
-        course_ids:
-          type: array
-          description: Список идентификаторов курсов для назначения
-          items:
-            type: integer
-            minimum: 1
-          example: [501, 502]
-
-    # Response схемы
-    User:
+          example: Manager
+    UserUpdateForm:
       type: object
       properties:
-        id:
-          type: integer
-          description: Уникальный идентификатор пользователя
-          example: 123
         username:
           type: string
-          description: Имя пользователя
-          example: "Иван Петров"
+          example: john_doe
         email:
           type: string
-          format: email
-          description: Email пользователя
-          example: "ivan.petrov@example.com"
-        role:
-          type: string
-          description: Роль пользователя
-          example: "student"
-        status:
-          type: string
-          description: Статус пользователя
-          enum: [active, inactive, blocked]
-          example: "active"
+          example: user@example.com
         department:
           type: string
-          description: Отдел
-          example: "IT отдел"
+          example: Marketing
         position:
           type: string
-          description: Должность
-          example: "Разработчик"
-        phone:
+          example: Manager
+        password:
           type: string
-          description: Телефон
-          example: "+7 (999) 123-45-67"
-        photo:
+          example: example
+        role:
           type: string
-          format: uri
-          description: URL фотографии пользователя (S3)
-          example: "https://s3.amazonaws.com/bucket/users/photos/123.jpg"
-        created_at:
-          type: string
-          format: date-time
-          description: Дата создания пользователя
-          example: "2025-01-15T10:30:00Z"
-        updated_at:
-          type: string
-          format: date-time
-          description: Дата последнего обновления
-          example: "2025-01-15T10:30:00Z"
-        last_login_at:
-          type: string
-          format: date-time
-          description: Дата последнего входа
-          example: "2025-01-16T09:15:00Z"
-        email_verified:
-          type: boolean
-          description: Подтвержден ли email
-          example: true
-        custom_fields:
-          type: object
-          description: Дополнительные поля пользователя
-          example:
-            city: "Москва"
-            experience: "5 лет"
-
-    UserList:
+          example: admin
+    AddCourseForm:
       type: object
+      required:
+      - userIds
+      - courses
       properties:
-        data:
-          type: object
-          properties:
-            pagination:
-              $ref: './core/common/schemas.yaml#/components/schemas/PaginationMeta'
-            items:
-              type: array
-              items:
-                $ref: './core/common/schemas.yaml#/components/schemas/User'
-          description: Объект данных с пагинацией и списком
-
-    # Специализированные схемы
-    UserImportStatus:
-      type: object
-      properties:
-        id:
-          type: integer
-          description: ID задачи импорта
-          example: 456
-        status:
-          type: string
-          enum: [pending, processing, completed, failed]
-          description: Статус обработки
-          example: "processing"
-        progress:
-          type: integer
-          minimum: 0
-          maximum: 100
-          description: Прогресс выполнения в процентах
-          example: 75
-        total_rows:
-          type: integer
-          description: Всего строк в файле
-          example: 150
-        processed_rows:
-          type: integer
-          description: Обработано строк
-          example: 112
-        errors:
+        userIds:
+          type: array
+          items:
+            type: integer
+        courses:
           type: array
           items:
             type: object
             properties:
-              row:
+              id:
                 type: integer
-                description: Номер строки с ошибкой
-                example: 2
-              field:
-                type: string
-                description: Поле с ошибкой
-                example: "email"
-              message:
-                type: string
-                description: Описание ошибки
-                example: "Invalid email format"
-          description: Массив ошибок валидации
-        created_at:
-          type: string
-          format: date-time
-          description: Время создания задачи
-          example: "2025-02-10T10:00:00Z"
-        completed_at:
-          type: string
-          format: date-time
-          description: Время завершения задачи
-          example: "2025-02-10T10:05:00Z"
-
+                example: 1
+              learning_group_id:
+                type: integer
+                example: 1
     ImportReport:
       type: object
-      description: Итоговый отчёт завершённого импорта пользователей
+      description: Отчет об импорте пользователей
       properties:
         id:
           type: integer
-          description: ID отчёта импорта
-          example: 1201
-        file:
+          example: 1
+          description: ID отчета
+        filename:
           type: string
-          description: Имя исходного файла импорта
-          example: "import-users-2025-02-10.xlsx"
+          example: users_import.xlsx
+          description: Имя загруженного файла
+        total_rows:
+          type: integer
+          example: 150
+          description: Общее количество строк в файле
+        processed_rows:
+          type: integer
+          example: 145
+          description: Количество успешно обработанных строк
+        error_rows:
+          type: integer
+          example: 5
+          description: Количество ошибок при обработке
         status:
           type: string
-          enum: [completed, failed]
-          description: Финальный статус задачи импорта
           example: completed
-        progress:
-          type: integer
-          minimum: 0
-          maximum: 100
-          description: Процент завершения задачи (всегда 100 для завершённых отчётов)
-          example: 100
-        success_count:
-          type: integer
-          description: Количество успешно обработанных записей
-          example: 118
-        error_count:
-          type: integer
-          description: Количество записей с ошибками
-          example: 2
+          description: Статус импорта (processing, completed, failed)
         created_at:
-          type: string
-          format: date-time
-          description: Дата создания задачи импорта
-          example: "2025-02-10T10:00:00Z"
-        updated_at:
-          type: string
-          format: date-time
-          description: Дата последнего обновления статуса задачи
-          example: "2025-02-10T10:05:30Z"
-
-    UserField:
-      type: object
-      properties:
-        id:
           type: integer
-          description: ID поля
-          example: 789
-        name:
-          type: string
-          description: Имя поля (system name)
-          example: "experience_years"
-        label:
-          type: string
-          description: Отображаемое название поля
-          example: "Опыт работы (лет)"
-        type:
-          type: string
-          enum: [string, number, date, boolean, select]
-          description: Тип поля
-          example: "number"
-        required:
-          type: boolean
-          description: Обязательное ли поле
-          example: false
-        enabled:
-          type: boolean
-          description: Активно ли поле
-          example: true
-        validation_rules:
-          type: object
-          description: Правила валидации
-          example:
-            min: 0
-            max: 50
-        options:
-          type: array
-          items:
-            type: string
-          description: Варианты для select полей
-          example: ["0-1", "2-5", "6-10", "10+"]
-    UserStatus:
-      type: object
-      properties:
-        id:
-          type: string
-          description: Системный код статуса
-          example: active
-        name:
-          type: string
-          description: Отображаемое название статуса
-          example: Активный
-        description:
-          type: string
-          description: Расширенное описание статуса
-          example: Пользователь с активной учётной записью
-        category:
-          type: string
-          description: Группа статусов (например, access, pending, blocked)
-          example: access
-        color:
-          type: string
-          description: Цветовой код статуса (hex)
-          example: "#2ea44f"
-        is_default:
-          type: boolean
-          description: Является ли статус статусом по умолчанию при создании
-          example: true
-      example:
-        id: active
-        name: Активный
-        description: Пользователь с полной активной учётной записью
-        category: access
-        color: "#2ea44f"
-        is_default: true
+          example: 1699459200
+          description: Дата создания отчета (Unix timestamp)
+        updated_at:
+          type: integer
+          example: 1699545600
+          description: Дата последнего обновления (Unix timestamp)
+  securitySchemes:
+    BearerToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT Bearer token for authentication

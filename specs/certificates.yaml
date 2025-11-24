@@ -1,47 +1,53 @@
-# Certificates API - 12 методов
-# Управление сертификатами и шаблонами
-
 openapi: 3.1.0
 info:
   title: Certificates API
   version: 1.0.0
-  description: |
-    ## Certificates — 12 методов
+  description: '## Certificates — 12 методов
 
-    Раздел Certificates предназначен для управления PDF сертификатами, которые выдаются пользователям за прохождение курсов. Система поддерживает шаблоны сертификатов, массовую и индивидуальную выдачу, а также интеграцию с внешними системами верификации.
 
-    Certificate представляет собой PDF документ, подтверждающий успешное завершение обучения. Каждый сертификат имеет уникальный номер, дату выдачи и может быть проверен через публичный интерфейс.
+    Раздел Certificates предназначен для управления PDF сертификатами, которые выдаются пользователям за прохождение курсов.
+    Система поддерживает шаблоны сертификатов, массовую и индивидуальную выдачу, а также интеграцию с внешними системами верификации.
 
+
+    Certificate представляет собой PDF документ, подтверждающий успешное завершение обучения. Каждый сертификат имеет уникальный
+    номер, дату выдачи и может быть проверен через публичный интерфейс.
+
+    '
+servers:
+- url: /api/v1
+  description: API v1 endpoint
 tags:
-  - name: Certificates.Templates
-    description: |
-      Управление шаблонами для генерации PDF сертификатов: внешний вид, расположение элементов и переменные для подстановки данных (read-only).
-  - name: Certificates.Issued
-    description: |
-      Управление выданными сертификатами, их статусами и верификацией.
-  - name: Certificates.Lookups
-    description: |
-      Справочники и системные настройки, связанные с сертификатами.
+- name: Certificates.Templates
+  description: 'Управление шаблонами для генерации PDF сертификатов: внешний вид, расположение элементов и переменные для
+    подстановки данных (read-only).
 
+    '
+- name: Certificates.Issued
+  description: 'Управление выданными сертификатами, их статусами и верификацией.
+
+    '
+- name: Certificates.Lookups
+  description: 'Справочники и системные настройки, связанные с сертификатами.
+
+    '
 paths:
-  # === Certificates.Templates ===
-
   /certificate/template/index:
     get:
       operationId: listCertificateTemplates
-      tags: [Certificates.Templates]
+      tags:
+      - Certificates.Templates
       summary: Получить список шаблонов сертификатов
       description: Возвращает все доступные шаблоны для генерации сертификатов
       parameters:
-        - $ref: './core/common/parameters.yaml#/components/parameters/Page'
-        - $ref: './core/common/parameters.yaml#/components/parameters/PerPage'
-        - name: active_only
-          in: query
-          required: false
-          schema:
-            type: boolean
-            default: true
-          description: Показать только активные шаблоны
+      - $ref: ./core/common/parameters.yaml#/components/parameters/Page
+      - $ref: ./core/common/parameters.yaml#/components/parameters/PerPage
+      - name: active_only
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: true
+        description: Показать только активные шаблоны
       responses:
         '200':
           description: List of certificate templates
@@ -49,18 +55,18 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          pagination:
-                            $ref: './core/common/schemas.yaml#/components/schemas/PaginationMeta'
+                - $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        pagination:
+                          $ref: ./core/common/schemas.yaml#/components/schemas/PaginationMeta
+                        items:
+                          type: array
                           items:
-                            type: array
-                            items:
-                              $ref: './core/common/schemas.yaml#/components/schemas/CertificateTemplate'
+                            $ref: ./core/common/schemas.yaml#/components/schemas/CertificateTemplate
               examples:
                 templates_page:
                   summary: Список активных шаблонов
@@ -72,29 +78,37 @@ paths:
                         page: 1
                         per_page: 20
                       items:
-                        - id: 1
-                          name: "Default Blue"
-                          description: "Базовый синий шаблон"
-                          preview_url: "https://cdn.space/templates/1/preview.png"
-                          active: true
-                          created_at: "2024-10-01T12:00:00Z"
-                          updated_at: "2024-11-01T08:00:00Z"
-                        - id: 2
-                          name: "Gold Award"
-                          description: "Золотой шаблон для VIP выпусков"
-                          preview_url: "https://cdn.space/templates/2/preview.png"
-                          active: true
-                          created_at: "2024-10-05T09:00:00Z"
-                          updated_at: "2024-11-02T10:00:00Z"
-
+                      - id: 1
+                        name: Default Blue
+                        description: Базовый синий шаблон
+                        preview_url: https://cdn.space/templates/1/preview.png
+                        active: true
+                        created_at: 1727772000
+                        updated_at: 1730419200
+                      - id: 2
+                        name: Gold Award
+                        description: Золотой шаблон для VIP выпусков
+                        preview_url: https://cdn.space/templates/2/preview.png
+                        active: true
+                        created_at: 1728115200
+                        updated_at: 1730534400
+        '422':
+          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+        '403':
+          $ref: ./core/common/responses.yaml#/components/responses/Forbidden
+        '500':
+          $ref: ./core/common/responses.yaml#/components/responses/InternalError
+      security:
+      - BearerToken: []
   /certificate/template/view:
     get:
       operationId: getCertificateTemplate
-      tags: [Certificates.Templates]
+      tags:
+      - Certificates.Templates
       summary: Получить детальную информацию о шаблоне сертификата
       description: Возвращает полную информацию о шаблоне включая переменные и предпросмотр
       parameters:
-        - $ref: './core/common/parameters.yaml#/components/parameters/Id'
+      - $ref: ./core/common/parameters.yaml#/components/parameters/Id
       responses:
         '200':
           description: Certificate template details
@@ -102,47 +116,47 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          id:
-                            type: integer
-                            example: 2
-                          name:
-                            type: string
-                            example: "Gold Award"
-                          description:
-                            type: string
-                            example: "Golden template for VIPs"
-                          template_html:
-                            type: string
-                            example: "<html><body>...</body></html>"
-                          variables:
-                            type: array
-                            items:
-                              type: object
-                              properties:
-                                name:
-                                  type: string
-                                  example: "student_name"
-                                type:
-                                  type: string
-                                  example: "string"
-                                description:
-                                  type: string
-                                  example: "Full name of the student"
-                                required:
-                                  type: boolean
-                                  example: true
-                          preview_url:
-                            type: string
-                            example: "https://cdn.space/templates/2/preview.png"
-                          active:
-                            type: boolean
-                            example: true
+                - $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 2
+                        name:
+                          type: string
+                          example: Gold Award
+                        description:
+                          type: string
+                          example: Golden template for VIPs
+                        template_html:
+                          type: string
+                          example: <html><body>...</body></html>
+                        variables:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                                example: student_name
+                              type:
+                                type: string
+                                example: string
+                              description:
+                                type: string
+                                example: Full name of the student
+                              required:
+                                type: boolean
+                                example: true
+                        preview_url:
+                          type: string
+                          example: https://cdn.space/templates/2/preview.png
+                        active:
+                          type: boolean
+                          example: true
               examples:
                 template_detail:
                   summary: Детальный шаблон
@@ -150,27 +164,32 @@ paths:
                     success: true
                     data:
                       id: 2
-                      name: "Gold Award"
-                      description: "Золотой шаблон для VIP выпусков"
-                      template_html: "<html>...шаблон...</html>"
+                      name: Gold Award
+                      description: Золотой шаблон для VIP выпусков
+                      template_html: <html>...шаблон...</html>
                       variables:
-                        - name: "username"
-                          type: "string"
-                          description: "Имя студента"
-                          required: true
-                        - name: "course_title"
-                          type: "string"
-                          required: true
-                      preview_url: "https://cdn.space/templates/2/preview.png"
+                      - name: username
+                        type: string
+                        description: Имя студента
+                        required: true
+                      - name: course_title
+                        type: string
+                        required: true
+                      preview_url: https://cdn.space/templates/2/preview.png
                       active: true
-        '404':
-          description: Template not found
-          $ref: './core/common/responses.yaml#/components/responses/NotFound'
-
+        '401':
+          $ref: ./core/common/responses.yaml#/components/responses/Unauthorized
+        '403':
+          $ref: ./core/common/responses.yaml#/components/responses/Forbidden
+        '500':
+          $ref: ./core/common/responses.yaml#/components/responses/InternalError
+      security:
+      - BearerToken: []
   /certificate/template/preview:
     post:
       operationId: createCertificateTemplatePreview
-      tags: [Certificates.Templates]
+      tags:
+      - Certificates.Templates
       summary: Сгенерировать превью сертификата
       description: Генерирует превью сертификата по шаблону с тестовыми данными
       requestBody:
@@ -179,38 +198,44 @@ paths:
           application/json:
             schema:
               type: object
-              required: [template_id]
+              required:
+              - template_id
               properties:
                 template_id:
                   type: integer
                   minimum: 1
                   description: ID шаблона сертификата
+                  example: 1
                 test_data:
                   type: object
                   description: Тестовые данные для подстановки в шаблон
                   properties:
                     student_name:
                       type: string
-                      default: "Иван Иванов"
+                      default: Иван Иванов
+                      example: John
                     course_name:
                       type: string
-                      default: "Тестовый курс"
+                      default: Тестовый курс
+                      example: John Doe
                     completion_date:
                       type: string
-                      default: "2024-01-15"
+                      default: '2024-01-15'
+                      example: example
                     certificate_number:
                       type: string
-                      default: "CERT-2024-001"
+                      default: CERT-2024-001
+                      example: CRT-2023-00001
             examples:
               preview_request:
                 summary: Превью шаблона с тестовыми данными
                 value:
                   template_id: 2
                   test_data:
-                    student_name: "Иван Иванов"
-                    course_name: "Онбординг"
-                    completion_date: "2024-01-15"
-                    certificate_number: "CERT-2024-001"
+                    student_name: Иван Иванов
+                    course_name: Онбординг
+                    completion_date: '2024-01-15'
+                    certificate_number: CERT-2024-001
       responses:
         '200':
           description: Certificate preview generated
@@ -218,73 +243,61 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          preview_url:
-                            type: string
-                            format: uri
-                          pdf_url:
-                            type: string
-                            format: uri
+                - $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        preview_url:
+                          type: string
+                          format: uri
+                          example: https://example.com/document.pdf
+                        pdf_url:
+                          type: string
+                          format: uri
+                          example: https://example.com/document.pdf
               examples:
                 preview_generated:
                   summary: Превью готово
                   value:
                     success: true
                     data:
-                      preview_url: "https://cdn.space/templates/2/preview.png"
-                      pdf_url: "https://cdn.space/templates/2/preview.pdf"
-
-  # === Certificates.Issued ===
-
+                      preview_url: https://cdn.space/templates/2/preview.png
+                      pdf_url: https://cdn.space/templates/2/preview.pdf
+      security:
+      - BearerToken: []
   /certificate/certificate/index:
     get:
       operationId: listCertificates
-      tags: [Certificates.Issued]
+      tags:
+      - Certificates.Issued
       summary: Получить список выданных сертификатов
       description: Возвращает список выданных сертификатов с фильтрацией
       parameters:
-        - $ref: './core/common/parameters.yaml#/components/parameters/Page'
-        - $ref: './core/common/parameters.yaml#/components/parameters/PerPage'
-        - name: user_id
-          in: query
-          required: false
-          schema:
-            type: integer
-            minimum: 1
-          description: Фильтр по ID пользователя
-        - name: course_id
-          in: query
-          required: false
-          schema:
-            type: integer
-            minimum: 1
-          description: Фильтр по ID курса
-        - name: status
-          in: query
-          required: false
-          schema:
-            type: string
-            enum: [issued, revoked, expired]
-          description: Фильтр по статусу сертификата
-        - name: date_from
-          in: query
-          required: false
-          schema:
-            type: string
-            format: date
-          description: Дата выдачи от
-        - name: date_to
-          in: query
-          required: false
-          schema:
-            type: string
-            format: date
-          description: Дата выдачи до
+      - $ref: ./core/common/parameters.yaml#/components/parameters/Page
+      - $ref: ./core/common/parameters.yaml#/components/parameters/PerPage
+      - $ref: ./core/common/parameters.yaml#/components/parameters/Sort
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Поиск по сертификатам
+      - name: course_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+        description: Фильтр по ID курса
+      - name: user_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+        description: Фильтр по ID пользователя
       responses:
         '200':
           description: List of issued certificates
@@ -292,18 +305,18 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          pagination:
-                            $ref: './core/common/schemas.yaml#/components/schemas/PaginationMeta'
+                - $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        pagination:
+                          $ref: ./core/common/schemas.yaml#/components/schemas/PaginationMeta
+                        items:
+                          type: array
                           items:
-                            type: array
-                            items:
-                              $ref: './core/common/schemas.yaml#/components/schemas/Certificate'
+                            $ref: ./core/common/schemas.yaml#/components/schemas/Certificate
               examples:
                 list:
                   summary: Список сертификатов с фильтрами
@@ -315,29 +328,51 @@ paths:
                         page: 1
                         per_page: 20
                       items:
-                        - id: 9001
-                          number: "CERT-2025-0001"
-                          user_id: 123
-                          course_id: 456
-                          template_id: 2
-                          status: "issued"
-                          issued_at: "2025-02-11T09:00:00Z"
-                        - id: 9002
-                          number: "CERT-2025-0002"
-                          user_id: 140
-                          course_id: 480
-                          template_id: 3
-                          status: "issued"
-                          issued_at: "2025-02-12T11:00:00Z"
-
+                      - id: 45
+                        number: CERT-2024-001
+                        created_at: 1727772000
+                        course:
+                          id: 456
+                          alias: onboarding-2024
+                          title: Онбординг
+                          type_id: 1
+                          picture_thumbnail: https://cdn.space/courses/456/thumb.png
+                        user:
+                          id: 123
+                          username: Иван Иванов
+                          email: ivan@example.com
+                        file: https://s3.space/certificates/2024/cert-45.pdf
+                      - id: 46
+                        number: CERT-2024-002
+                        created_at: 1728115200
+                        course:
+                          id: 480
+                          alias: sales-master-2024
+                          title: Продажи B2B
+                          type_id: 2
+                          picture_thumbnail: https://cdn.space/courses/480/thumb.png
+                        user:
+                          id: 140
+                          username: Мария Петрова
+                          email: maria@example.com
+                        file: https://s3.space/certificates/2024/cert-46.pdf
+        '422':
+          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+        '403':
+          $ref: ./core/common/responses.yaml#/components/responses/Forbidden
+        '500':
+          $ref: ./core/common/responses.yaml#/components/responses/InternalError
+      security:
+      - BearerToken: []
   /certificate/certificate/view:
     get:
       operationId: getCertificate
-      tags: [Certificates.Issued]
+      tags:
+      - Certificates.Issued
       summary: Получить информацию о выданном сертификате
       description: Возвращает детальную информацию о конкретном выданном сертификате
       parameters:
-        - $ref: './core/common/parameters.yaml#/components/parameters/Id'
+      - $ref: ./core/common/parameters.yaml#/components/parameters/Id
       responses:
         '200':
           description: Certificate details
@@ -345,40 +380,57 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      data:
-                        $ref: './core/common/schemas.yaml#/components/schemas/CertificateDetail'
+                - $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
+                - type: object
+                  properties:
+                    data:
+                      $ref: ./core/common/schemas.yaml#/components/schemas/CertificateDetail
               examples:
                 detail:
                   summary: Детальный сертификат
                   value:
                     success: true
                     data:
-                      id: 9001
-                      number: "CERT-2025-0001"
+                      id: 45
+                      number: CERT-2024-001
+                      created_at: 1727772000
                       user:
                         id: 123
-                        username: "Иван Иванов"
-                        email: "ivan@example.com"
+                        username: Иван Иванов
+                        email: ivan@example.com
                       course:
                         id: 456
-                        name: "Онбординг"
-                      template_id: 2
-                      status: "issued"
-                      pdf_url: "https://cdn.space/certificates/9001.pdf"
-                      verification_url: "https://verify.space/CERT-2025-0001"
-                      issued_at: "2025-02-11T09:00:00Z"
-                      expires_at: "2026-02-11T09:00:00Z"
-        '404':
-          description: Certificate not found
-          $ref: './core/common/responses.yaml#/components/responses/NotFound'
-
+                        alias: onboarding-2024
+                        title: Онбординг
+                        type_id: 1
+                        picture_thumbnail: https://cdn.space/courses/456/thumb.png
+                      file: https://s3.space/certificates/2024/cert-45.pdf
+                      fields:
+                      - key: student_name
+                        value: Иван Иванов
+                      - key: course_title
+                        value: Онбординг
+                      template:
+                        id: 2
+                        name: Gold Award
+                        hide_for_student: false
+                        file: https://s3.space/templates/2/template.pdf
+                        type:
+                          id: 1
+                          name: Course completion
+        '401':
+          $ref: ./core/common/responses.yaml#/components/responses/Unauthorized
+        '403':
+          $ref: ./core/common/responses.yaml#/components/responses/Forbidden
+        '500':
+          $ref: ./core/common/responses.yaml#/components/responses/InternalError
+      security:
+      - BearerToken: []
   /certificate/certificate/create:
     post:
       operationId: createCertificate
-      tags: [Certificates.Issued]
+      tags:
+      - Certificates.Issued
       summary: Выдать сертификат
       description: Выдает новый сертификат пользователю за прохождение курса
       requestBody:
@@ -387,7 +439,10 @@ paths:
           application/json:
             schema:
               type: object
-              required: [user_id, course_id, template_id]
+              required:
+              - user_id
+              - course_id
+              - template_id
               properties:
                 user_id:
                   type: integer
@@ -408,12 +463,12 @@ paths:
                   type: string
                   format: date
                   description: Дата выдачи (по умолчанию текущая)
-                  example: "2024-01-15"
+                  example: '2024-01-15'
                 expires_at:
                   type: string
                   format: date
                   description: Дата истечения (необязательно)
-                  example: "2025-01-15"
+                  example: '2025-01-15'
                 custom_data:
                   type: object
                   description: Дополнительные данные для шаблона
@@ -424,31 +479,34 @@ paths:
                   user_id: 123
                   course_id: 456
                   template_id: 2
-                  issue_date: "2024-01-15"
-                  expires_at: "2025-01-15"
+                  issue_date: '2024-01-15'
+                  expires_at: '2025-01-15'
                   custom_data:
-                    username: "Иван Иванов"
-                    course_title: "Онбординг"
+                    username: Иван Иванов
+                    course_title: Онбординг
       responses:
         '200':
           description: Certificate issued
           content:
             application/json:
               schema:
-                $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
+                $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
               examples:
                 issued:
                   summary: Сертификат выдан
                   value:
                     success: true
-                    message: "Certificate created"
-        '400':
-          description: Validation error
-          $ref: './core/common/responses.yaml#/components/responses/ValidationError'
-
+                    message: Certificate created
+        '422':
+          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+        '500':
+          $ref: ./core/common/responses.yaml#/components/responses/InternalError
+      security:
+      - BearerToken: []
   /certificate/certificate/revoke:
     post:
-      tags: [Certificates.Issued]
+      tags:
+      - Certificates.Issued
       summary: Отозвать сертификат
       description: Отзывает ранее выданный сертификат
       requestBody:
@@ -457,44 +515,50 @@ paths:
           application/json:
             schema:
               type: object
-              required: [certificate_id, reason]
+              required:
+              - certificate_id
+              - reason
               properties:
                 certificate_id:
                   type: integer
                   minimum: 1
                   description: ID сертификата для отзыва
+                  example: 1
                 reason:
                   type: string
                   description: Причина отзыва сертификата
+                  example: example
       responses:
         '200':
           description: Certificate revoked successfully
-          $ref: './core/common/responses.yaml#/components/responses/Success'
+          $ref: ./core/common/responses.yaml#/components/responses/Success
         '400':
           description: Bad request
-          $ref: './core/common/responses.yaml#/components/responses/BadRequest'
+          $ref: ./core/common/responses.yaml#/components/responses/BadRequest
         '404':
           description: Certificate not found
-          $ref: './core/common/responses.yaml#/components/responses/NotFound'
-
+          $ref: ./core/common/responses.yaml#/components/responses/NotFound
+      security:
+      - BearerToken: []
   /certificate/certificate/verify:
     get:
-      tags: [Certificates.Issued]
+      tags:
+      - Certificates.Issued
       summary: Проверить подлинность сертификата
       description: Проверяет сертификат по номеру или QR коду
       parameters:
-        - name: number
-          in: query
-          required: false
-          schema:
-            type: string
-          description: Номер сертификата
-        - name: code
-          in: query
-          required: false
-          schema:
-            type: string
-          description: Проверочный код из QR кода
+      - name: number
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Номер сертификата
+      - name: code
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Проверочный код из QR кода
       responses:
         '200':
           description: Certificate verification result
@@ -502,31 +566,34 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          valid:
-                            type: boolean
-                            description: Сертификат действителен
-                          certificate:
-                            $ref: './core/common/schemas.yaml#/components/schemas/Certificate'
+                - $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        valid:
+                          type: boolean
+                          description: Сертификат действителен
+                          example: true
+                        certificate:
+                          $ref: ./core/common/schemas.yaml#/components/schemas/Certificate
         '400':
           description: Bad request
-          $ref: './core/common/responses.yaml#/components/responses/BadRequest'
+          $ref: ./core/common/responses.yaml#/components/responses/BadRequest
         '404':
           description: Сертификат не найден или недействителен
-
+      security:
+      - BearerToken: []
   /certificate/certificate/download:
     get:
       operationId: downloadCertificate
-      tags: [Certificates.Issued]
+      tags:
+      - Certificates.Issued
       summary: Скачать PDF сертификата
       description: Возвращает PDF файл сертификата для скачивания
       parameters:
-        - $ref: './core/common/parameters.yaml#/components/parameters/Id'
+      - $ref: ./core/common/parameters.yaml#/components/parameters/Id
       responses:
         '200':
           description: PDF certificate file
@@ -538,22 +605,31 @@ paths:
               examples:
                 pdf_file:
                   summary: PDF сертификата
-                  value: "UEsDBBQACAgI..."  # base64 заглушка
+                  value: UEsDBBQACAgI...
         '404':
           description: Certificate not found
-          $ref: './core/common/responses.yaml#/components/responses/NotFound'
-
+          $ref: ./core/common/responses.yaml#/components/responses/NotFound
+        '500':
+          $ref: ./core/common/responses.yaml#/components/responses/InternalError
+      security:
+      - BearerToken: []
   /certificate/download-zip:
     post:
       operationId: downloadCertificatesZip
-      tags: [Certificates.Issued]
+      tags:
+      - Certificates.Issued
       summary: Сформировать ZIP с сертификатами
-      description: |
-        Запускает генерацию ZIP-архива сертификатов по фильтрам (search, course_id, user_id, пагинация, сортировка). Одновременно может быть только одна активная задача на ключ.
+      description: 'Запускает генерацию ZIP-архива сертификатов по фильтрам (search, course_id, user_id, пагинация, сортировка).
+        Одновременно может быть только одна активная задача на ключ.
+
 
         **Назначение:** массовая выгрузка сертификатов для передачи внешним системам или печати.
 
-        **Пример Use case:** администратор выбирает курс и диапазон пользователей, запускает экспорт и получает ссылку на архив.
+
+        **Пример Use case:** администратор выбирает курс и диапазон пользователей, запускает экспорт и получает ссылку на
+        архив.
+
+        '
       requestBody:
         required: false
         content:
@@ -563,7 +639,7 @@ paths:
               properties:
                 search:
                   type: string
-                  example: "ivan"
+                  example: ivan
                 course_id:
                   type: integer
                   minimum: 1
@@ -601,32 +677,37 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      message:
-                        type: string
-                        example: "Commit job queued"
-                      data:
-                        type: object
-                        properties:
-                          filePath:
-                            type: string
-                            format: uri
-                            example: /uploads/certificates/zip/abc.zip
+                - $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
+                - type: object
+                  properties:
+                    message:
+                      type: string
+                      example: Commit job queued
+                    data:
+                      type: object
+                      properties:
+                        filePath:
+                          type: string
+                          format: uri
+                          example: https://space.example.com/uploads/certificates/zip/abc.zip
               examples:
                 download_zip_queued:
                   summary: Задача на экспорт создана
                   value:
                     success: true
-                    message: "Commit job queued"
+                    message: Commit job queued
                     data:
-                      filePath: "/uploads/certificates/zip/certificates-2025-02-11.zip"
-        '400':
-          $ref: './core/common/responses.yaml#/components/responses/BadRequest'
+                      filePath: https://space.example.com/uploads/certificates/zip/certificates-2025-02-11.zip
+        '422':
+          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+        '500':
+          $ref: ./core/common/responses.yaml#/components/responses/InternalError
+      security:
+      - BearerToken: []
   /certificate/certificate/bulk-issue:
     post:
-      tags: [Certificates.Issued]
+      tags:
+      - Certificates.Issued
       summary: Массовая выдача сертификатов
       description: Выдает сертификаты группе пользователей за курс
       requestBody:
@@ -635,7 +716,10 @@ paths:
           application/json:
             schema:
               type: object
-              required: [user_ids, course_id, template_id]
+              required:
+              - user_ids
+              - course_id
+              - template_id
               properties:
                 user_ids:
                   type: array
@@ -648,14 +732,17 @@ paths:
                   type: integer
                   minimum: 1
                   description: ID курса
+                  example: 1
                 template_id:
                   type: integer
                   minimum: 1
                   description: ID шаблона сертификата
+                  example: 1
                 issue_date:
                   type: string
                   format: date
                   description: Дата выдачи
+                  example: example
       responses:
         '200':
           description: Bulk issue results
@@ -663,31 +750,35 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          batch_id:
-                            type: string
-                          total_issued:
-                            type: integer
-                          failed:
-                            type: array
-                            items:
-                              type: object
-                              properties:
-                                user_id:
-                                  type: integer
-                                error:
-                                  type: string
-
-  # === Certificates.Lookups ===
-
+                - $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        batch_id:
+                          type: string
+                          example: Group 1
+                        total_issued:
+                          type: integer
+                          example: 100
+                        failed:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              user_id:
+                                type: integer
+                                example: 1
+                              error:
+                                type: string
+                                example: Invalid email format
+      security:
+      - BearerToken: []
   /dictionary/certificate/statuses:
     get:
-      tags: [Certificates.Lookups]
+      tags:
+      - Certificates.Lookups
       summary: Получить статусы сертификатов
       description: Возвращает все возможные статусы сертификатов в системе
       responses:
@@ -697,27 +788,29 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                              example: issued
-                            name:
-                              type: string
-                              example: "Выдан"
-                            description:
-                              type: string
-                              example: "Сертификат успешно выдан"
-
+                - $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            example: issued
+                          name:
+                            type: string
+                            example: Выдан
+                          description:
+                            type: string
+                            example: Сертификат успешно выдан
+      security:
+      - BearerToken: []
   /certificate/settings:
     get:
-      tags: [Certificates.Lookups]
+      tags:
+      - Certificates.Lookups
       summary: Получить настройки модуля сертификатов
       description: Возвращает системные настройки для генерации сертификатов
       responses:
@@ -727,40 +820,49 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          auto_issue_enabled:
-                            type: boolean
-                            example: true
-                          default_template_id:
-                            type: integer
-                            example: 2
-                          verification_url_template:
-                            type: string
-                            example: "https://verify.space/{number}"
-                          storage_settings:
-                            type: object
-                            properties:
-                              provider:
-                                type: string
-                                example: "s3"
-                              bucket:
-                                type: string
-                                example: "space-certificates"
-
+                - $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        auto_issue_enabled:
+                          type: boolean
+                          example: true
+                        default_template_id:
+                          type: integer
+                          example: 2
+                        verification_url_template:
+                          type: string
+                          example: https://verify.space/{number}
+                        storage_settings:
+                          type: object
+                          properties:
+                            provider:
+                              type: string
+                              example: s3
+                            bucket:
+                              type: string
+                              example: space-certificates
+      security:
+      - BearerToken: []
   /certificate/course/index:
     get:
       operationId: listCertificateCourses
-      tags: [Certificates.Lookups]
+      tags:
+      - Certificates.Lookups
       summary: Список курсов для выдачи сертификатов
       description: Возвращает курсы (id, title, type) для выбора `course_id` при выдаче сертификатов.
       parameters:
-        - $ref: './core/common/parameters.yaml#/components/parameters/Page'
-        - $ref: './core/common/parameters.yaml#/components/parameters/PerPage'
+      - $ref: ./core/common/parameters.yaml#/components/parameters/Page
+      - $ref: ./core/common/parameters.yaml#/components/parameters/PerPage
+      - $ref: ./core/common/parameters.yaml#/components/parameters/Sort
+      - name: title
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Поиск по названию курса
       responses:
         '200':
           description: Success
@@ -768,28 +870,28 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          pagination:
-                            $ref: './core/common/schemas.yaml#/components/schemas/PaginationMeta'
+                - $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        pagination:
+                          $ref: ./core/common/schemas.yaml#/components/schemas/PaginationMeta
+                        items:
+                          type: array
                           items:
-                            type: array
-                            items:
-                              type: object
-                              properties:
-                                id:
-                                  type: integer
-                                  example: 12
-                                title:
-                                  type: string
-                                  example: "Онбординг"
-                                type:
-                                  type: string
-                                  example: "course"
+                            type: object
+                            properties:
+                              id:
+                                type: integer
+                                example: 12
+                              title:
+                                type: string
+                                example: Онбординг
+                              type:
+                                type: string
+                                example: course
               examples:
                 courses_page:
                   summary: Курсы для выбора сертификата
@@ -801,27 +903,72 @@ paths:
                         page: 1
                         per_page: 20
                       items:
-                        - id: 12
-                          title: "Онбординг"
-                          type: "course"
-                        - id: 18
-                          title: "Менторская программа"
-                          type: "program"
-
+                      - id: 12
+                        title: Онбординг
+                        type: course
+                      - id: 18
+                        title: Менторская программа
+                        type: program
+        '422':
+          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+        '403':
+          $ref: ./core/common/responses.yaml#/components/responses/Forbidden
+        '500':
+          $ref: ./core/common/responses.yaml#/components/responses/InternalError
+      security:
+      - BearerToken: []
   /certificate/user/index:
     get:
       operationId: listCertificateUsers
-      tags: [Certificates.Lookups]
+      tags:
+      - Certificates.Lookups
       summary: Список пользователей для выдачи сертификатов
       description: Возвращает пользователей (id, username, email) для выбора `user_id` при выдаче сертификатов.
       parameters:
-        - $ref: './core/common/parameters.yaml#/components/parameters/Page'
-        - $ref: './core/common/parameters.yaml#/components/parameters/PerPage'
-        - name: search
-          in: query
-          schema:
-            type: string
-          description: Поиск по имени/email
+      - $ref: ./core/common/parameters.yaml#/components/parameters/Page
+      - $ref: ./core/common/parameters.yaml#/components/parameters/PerPage
+      - name: search
+        in: query
+        schema:
+          type: string
+        description: Поиск по имени/email
+      - name: courseIds
+        in: query
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Массив ID продуктов/курсов
+      - name: groupIds
+        in: query
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Массив ID групп
+      - name: inAllGroups
+        in: query
+        schema:
+          type: boolean
+        description: Требовать принадлежность ко всем указанным группам
+      - name: progressFrom
+        in: query
+        schema:
+          type: integer
+        description: Минимальный прогресс
+      - name: progressTo
+        in: query
+        schema:
+          type: integer
+        description: Максимальный прогресс
+      - name: documentExists
+        in: query
+        schema:
+          type: integer
+          enum:
+          - 0
+          - 1
+        description: Фильтр по наличию документа
       responses:
         '200':
           description: Success
@@ -829,28 +976,28 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          pagination:
-                            $ref: './core/common/schemas.yaml#/components/schemas/PaginationMeta'
+                - $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        pagination:
+                          $ref: ./core/common/schemas.yaml#/components/schemas/PaginationMeta
+                        items:
+                          type: array
                           items:
-                            type: array
-                            items:
-                              type: object
-                              properties:
-                                id:
-                                  type: integer
-                                  example: 101
-                                username:
-                                  type: string
-                                  example: "Иван Иванов"
-                                email:
-                                  type: string
-                                  example: "ivan@example.com"
+                            type: object
+                            properties:
+                              id:
+                                type: integer
+                                example: 101
+                              username:
+                                type: string
+                                example: Иван Иванов
+                              email:
+                                type: string
+                                example: ivan@example.com
               examples:
                 users_page:
                   summary: Пользователи для выдачи
@@ -862,17 +1009,25 @@ paths:
                         page: 1
                         per_page: 20
                       items:
-                        - id: 101
-                          username: "Иван Иванов"
-                          email: "ivan@example.com"
-                        - id: 102
-                          username: "Мария Петрова"
-                          email: "maria@example.com"
-
+                      - id: 101
+                        username: Иван Иванов
+                        email: ivan@example.com
+                      - id: 102
+                        username: Мария Петрова
+                        email: maria@example.com
+        '422':
+          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+        '403':
+          $ref: ./core/common/responses.yaml#/components/responses/Forbidden
+        '500':
+          $ref: ./core/common/responses.yaml#/components/responses/InternalError
+      security:
+      - BearerToken: []
   /certificate/type/index:
     get:
       operationId: listCertificateTypes
-      tags: [Certificates.Lookups]
+      tags:
+      - Certificates.Lookups
       summary: Справочник типов сертификатов
       description: Возвращает список типов сертификатов для подстановки в запросах выдачи.
       responses:
@@ -882,52 +1037,65 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          pagination:
-                            $ref: './core/common/schemas.yaml#/components/schemas/PaginationMeta'
+                - $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        items:
+                          type: array
                           items:
-                            type: array
-                            items:
-                              type: object
-                              properties:
-                                id:
-                                  type: integer
-                                  example: 1
-                                name:
-                                  type: string
-                                  example: Course completion
-                                description:
-                                  type: [string, 'null']
-                                  example: "Выдаётся за прохождение курса"
+                            type: object
+                            properties:
+                              id:
+                                type: integer
+                                example: 1
+                              name:
+                                type: string
+                                example: Course completion
+                              description:
+                                type:
+                                - string
+                                - 'null'
+                                example: Выдаётся за прохождение курса
               examples:
                 certificate_types:
                   summary: Доступные типы сертификатов
                   value:
                     success: true
                     data:
-                      pagination:
-                        total: 2
-                        page: 1
-                        per_page: 20
                       items:
-                        - id: 1
-                          name: "Course completion"
-                          description: "Выдаётся за прохождение курса"
-                        - id: 2
-                          name: "Exam"
-                          description: "Выдаётся за сдачу экзамена"
-
+                      - id: 1
+                        name: Course completion
+                        description: Выдаётся за прохождение курса
+                      - id: 2
+                        name: Exam
+                        description: Выдаётся за сдачу экзамена
+        '403':
+          $ref: ./core/common/responses.yaml#/components/responses/Forbidden
+        '500':
+          $ref: ./core/common/responses.yaml#/components/responses/InternalError
+      security:
+      - BearerToken: []
   /certificate/variable/index:
     get:
       operationId: listCertificateVariables
-      tags: [Certificates.Lookups]
+      tags:
+      - Certificates.Lookups
       summary: Список переменных сертификатов
       description: Возвращает доступные переменные для шаблонов сертификатов (ключ, имя, обязательность).
+      parameters:
+      - name: list_id
+        in: query
+        schema:
+          type: integer
+        description: ID списка переменных
+      - name: name
+        in: query
+        schema:
+          type: string
+        description: Фильтр по имени переменной
       responses:
         '200':
           description: Success
@@ -935,59 +1103,63 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          pagination:
-                            $ref: './core/common/schemas.yaml#/components/schemas/PaginationMeta'
+                - $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        items:
+                          type: array
                           items:
-                            type: array
-                            items:
-                              type: object
-                              properties:
-                                id:
-                                  type: integer
-                                  example: 5
-                                key:
-                                  type: string
-                                  example: username
-                                name:
-                                  type: string
-                                  example: Имя пользователя
-                                description:
-                                  type: [string, 'null']
-                                  example: "Отображается на сертификате"
-                                required:
-                                  type: boolean
-                                  example: true
+                            type: object
+                            properties:
+                              id:
+                                type: integer
+                                example: 5
+                              key:
+                                type: string
+                                example: username
+                              name:
+                                type: string
+                                example: Имя пользователя
+                              description:
+                                type:
+                                - string
+                                - 'null'
+                                example: Отображается на сертификате
+                              required:
+                                type: boolean
+                                example: true
               examples:
                 certificate_variables:
                   summary: Переменные для шаблонов
                   value:
                     success: true
                     data:
-                      pagination:
-                        total: 2
-                        page: 1
-                        per_page: 20
                       items:
-                        - id: 5
-                          key: username
-                          name: "Имя пользователя"
-                          description: "Отображается на сертификате"
-                          required: true
-                        - id: 6
-                          key: course_title
-                          name: "Название курса"
-                          required: true
-
+                      - id: 5
+                        key: username
+                        name: Имя пользователя
+                        description: Отображается на сертификате
+                        required: true
+                      - id: 6
+                        key: course_title
+                        name: Название курса
+                        required: true
+        '422':
+          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+        '403':
+          $ref: ./core/common/responses.yaml#/components/responses/Forbidden
+        '500':
+          $ref: ./core/common/responses.yaml#/components/responses/InternalError
+      security:
+      - BearerToken: []
   /certificate/variable-list/index:
     get:
       operationId: listCertificateVariableValues
-      tags: [Certificates.Lookups]
+      tags:
+      - Certificates.Lookups
       summary: Наборы переменных сертификатов
       description: Возвращает значения переменных (variable_id, key, value) для подстановки в шаблоны.
       responses:
@@ -997,42 +1169,52 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          pagination:
-                            $ref: './core/common/schemas.yaml#/components/schemas/PaginationMeta'
+                - $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        items:
+                          type: array
                           items:
-                            type: array
-                            items:
-                              type: object
-                              properties:
-                                variable_id:
-                                  type: integer
-                                  example: 5
-                                key:
-                                  type: string
-                                  example: username
-                                value:
-                                  type: string
-                                  example: "Иван Иванов"
+                            type: object
+                            properties:
+                              variable_id:
+                                type: integer
+                                example: 5
+                              key:
+                                type: string
+                                example: username
+                              value:
+                                type: string
+                                example: Иван Иванов
               examples:
                 certificate_variable_values:
                   summary: Значения переменных
                   value:
                     success: true
                     data:
-                      pagination:
-                        total: 2
-                        page: 1
-                        per_page: 20
                       items:
-                        - variable_id: 5
-                          key: username
-                          value: "Иван Иванов"
-                        - variable_id: 6
-                          key: course_title
-                          value: "Онбординг"
+                      - variable_id: 5
+                        key: username
+                        value: Иван Иванов
+                      - variable_id: 6
+                        key: course_title
+                        value: Онбординг
+        '422':
+          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+        '403':
+          $ref: ./core/common/responses.yaml#/components/responses/Forbidden
+        '500':
+          $ref: ./core/common/responses.yaml#/components/responses/InternalError
+      security:
+      - BearerToken: []
+components:
+  schemas: {}
+  securitySchemes:
+    BearerToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT Bearer token for authentication

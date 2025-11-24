@@ -2,6 +2,9 @@ openapi: 3.1.0
 info:
   title: Reezonly Space Platform API
   version: 1.0.0
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
   description: |
     **Руководство интеграций Reezonly Space** — это главный источник информации, благодаря которому внешние CRM, CMS, ERP и маркетинговые системы быстро подключают программный доступ к Space API.
 
@@ -36,8 +39,6 @@ servers:
     description: Production server
   - url: https://staging-space-domain.com/api/v1
     description: Staging server
-  - url: http://localhost:8080/api/v1
-    description: Development server
 
 x-servers:
   - url: https://your-space-domain.com/api/v1
@@ -60,6 +61,11 @@ components:
       type: apiKey
       in: header
       name: X-API-Key
+    BearerToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Bearer token authentication (JWT)
   schemas: {}
   parameters: {}
   responses: {}

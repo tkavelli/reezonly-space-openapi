@@ -58,9 +58,12 @@ components:
               - type: object
                 properties:
                   data:
-                    type: array
-                    items:
-                      $ref: './schemas.yaml#/components/schemas/Group'
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: './schemas.yaml#/components/schemas/Group'
 
     CertificateList:
       description: Список сертификатов успешно получен
@@ -72,9 +75,14 @@ components:
               - type: object
                 properties:
                   data:
-                    type: array
-                    items:
-                      $ref: './schemas.yaml#/components/schemas/Certificate'
+                    type: object
+                    properties:
+                      pagination:
+                        $ref: './schemas.yaml#/components/schemas/PaginationMeta'
+                      items:
+                        type: array
+                        items:
+                          $ref: './schemas.yaml#/components/schemas/Certificate'
 
     # Error responses
     BadRequest:
@@ -129,6 +137,18 @@ components:
 
     ValidationError:
       description: Ошибка валидации данных
+      content:
+        application/json:
+          schema:
+            $ref: './schemas.yaml#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            errors:
+              password:
+                - "Password must be at least 6 characters"
+
+    UnprocessableEntity:
+      description: Ошибка валидации данных (422)
       content:
         application/json:
           schema:

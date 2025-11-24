@@ -15,7 +15,7 @@ components:
 
     PerPage:
       in: query
-      name: per-page
+      name: per_page
       description: Количество элементов на странице (максимум 100)
       required: false
       schema:
@@ -45,15 +45,14 @@ components:
         minimum: 1
         example: 42
 
-    PathId:
-      in: path
-      name: id
-      description: Идентификатор ресурса в URL пути
-      required: true
+    Sort:
+      in: query
+      name: sort
+      description: Сортировка результатов (например, -created_at для обратной сортировки)
+      required: false
       schema:
-        type: integer
-        minimum: 1
-        example: 42
+        type: string
+        example: "-created_at"
 
     # Array parameters
     Ids:
@@ -68,27 +67,3 @@ components:
           minimum: 1
         maxItems: 100
         example: [12, 15, 20]
-
-    # Optional parameters
-    ParentId:
-      in: query
-      name: parent_id
-      description: ID родительского элемента (null для корневого уровня)
-      required: false
-      schema:
-        oneOf:
-          - type: integer
-            minimum: 1
-          - type: 'null'
-        example: null
-
-    ShowDefault:
-      in: query
-      name: showDefault
-      description: Показать стандартные элементы (0|1)
-      required: false
-      schema:
-        type: integer
-        enum: [0, 1]
-        default: 0
-        example: 1

@@ -1,0 +1,9 @@
+@font-face {
+	font-family: 'StyreneALC-Light';
+	src: url('../fonts/styrenealc-light.eot'); /* IE 9 Compatibility Mode */
+	src: url('../fonts/styrenealc-light.eot?#iefix') format('embedded-opentype'), /* IE < 9 */
+		url('../fonts/styrenealc-light.woff2') format('woff2'), /* Super Modern Browsers */
+		url('../fonts/styrenealc-light.woff') format('woff'), /* Firefox >= 3.6, any other modern browser */
+		url('../fonts/styrenealc-light.ttf') format('truetype'), /* Safari, Android, iOS */
+		url('../fonts/styrenealc-light.svg#styrenealc-light') format('svg'); /* Chrome < 4, Legacy iOS */
+}

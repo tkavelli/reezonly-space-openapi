@@ -10,7 +10,7 @@ async function buildOpenAPI() {
     console.log('🚀 Building Reezonly Space Platform API specification...');
 
     // Load base specification
-    const baseSpec = await SwaggerParser.validate(path.resolve(__dirname, '../specs/core/base.yaml'));
+    const baseSpec = yaml.load(fs.readFileSync(path.resolve(__dirname, '../specs/core/base.yaml'), 'utf8'));
 
     console.log('✅ Base specification loaded');
 
@@ -49,7 +49,7 @@ async function buildOpenAPI() {
 
     for (const moduleName of modules) {
       console.log(`  📄 Loading ${moduleName} module...`);
-      const moduleSpec = await SwaggerParser.validate(path.resolve(__dirname, `../specs/${moduleName}.yaml`));
+      const moduleSpec = yaml.load(fs.readFileSync(path.resolve(__dirname, `../specs/${moduleName}.yaml`), 'utf8'));
 
       // Merge tags
       if (moduleSpec.tags) {
@@ -119,6 +119,8 @@ async function buildOpenAPI() {
     const normalizeRef = (ref) => {
       if (typeof ref !== 'string') return ref;
       return ref
+        .replace(/\.\/groups\.yaml#\/components\/schemas\//g, '#/components/schemas/')
+        .replace(/\.\/certificates\.yaml#\/components\/schemas\//g, '#/components/schemas/')
         .replace(/\.?\.?\/core\/common\/schemas\.yaml#\/components\/schemas\//g, '#/components/schemas/')
         .replace(/\.?\.?\/core\/common\/parameters\.yaml#\/components\/parameters\//g, '#/components/parameters/')
         .replace(/\.?\.?\/core\/common\/responses\.yaml#\/components\/responses\//g, '#/components/responses/')
@@ -263,7 +265,7 @@ async function buildOpenAPI() {
     const yamlContent = yaml.dump(completeSpec, {
       indent: 2,
       lineWidth: -1,
-      noRefs: false
+      noRefs: true
     });
 
     await fs.writeFile(outputPath, yamlContent, 'utf8');

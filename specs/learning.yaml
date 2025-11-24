@@ -1,60 +1,77 @@
-# Learning API - 4 метода (READ-ONLY)
-# Страницы и курсы (только чтение)
-
 openapi: 3.1.0
 info:
   title: Learning API
   version: 1.0.0
-  description: |
-    ## Pages and Courses (Learning Products) — 4 метода (READ-ONLY)
+  description: '## Pages and Courses (Learning Products) — 4 метода (READ-ONLY)
 
-    Раздел Learning предоставляет доступ к каталогу курсов и страниц контента в режиме чтения. Основной контент курсов хранится во внешней LMS системе, а Space выступает как витрина и система управления доступом.
 
-    **⚠️ Важно:** Эти методы доступны только для чтения. Изменение контента курсов и уроков выполняется через LMS, а не через этот API.
+    Раздел Learning предоставляет доступ к каталогу курсов и страниц контента в режиме чтения. Основной контент курсов хранится
+    во внешней LMS системе, а Space выступает как витрина и система управления доступом.
 
+
+    **⚠️ Важно:** Эти методы доступны только для чтения. Изменение контента курсов и уроков выполняется через LMS, а не через
+    этот API.
+
+    '
+servers:
+- url: /api/v1
+  description: API v1 endpoint
 tags:
-  - name: Courses
-    description: |
-      Курсы и обучающие продукты (read-only). Назначение: отдать актуальные метаданные курсов и продуктов для витрин/CRM/маркетинга. Ключевые особенности: постраничная выдача (`/course/course/index`), структура и уроки, атрибуты активности (`students_count`, `enabled`, `status`, `picture`, `lms_id`). Пример: внешняя CMS запрашивает `/course/course/index`, показывает карточки, затем `/course/course/view` для программы и уроков.
+- name: Courses
+  description: 'Курсы и обучающие продукты (read-only). Назначение: отдать актуальные метаданные курсов и продуктов для витрин/CRM/маркетинга.
+    Ключевые особенности: постраничная выдача (`/course/course/index`), структура и уроки, атрибуты активности (`students_count`,
+    `enabled`, `status`, `picture`, `lms_id`). Пример: внешняя CMS запрашивает `/course/course/index`, показывает карточки,
+    затем `/course/course/view` для программы и уроков.
 
-  - name: Pages
-    description: |
-      Страницы и контент сайта (read-only). Назначение: раскрыть структуру публичных/закрытых страниц для внешних CMS. Ключевые особенности: список типов (`/dictionary/dictionary/page-types`), выдача `pages`, поля `enabled`, SEO-метаданные, `alias`, `category`. Пример: внешняя система берёт меню, вызывает `/dictionary/dictionary/pages`, сортирует по типу, обновляет ссылки без доступа к внутренней CMS.
+    '
+- name: Pages
+  description: 'Страницы и контент сайта (read-only). Назначение: раскрыть структуру публичных/закрытых страниц для внешних
+    CMS. Ключевые особенности: список типов (`/dictionary/dictionary/page-types`), выдача `pages`, поля `enabled`, SEO-метаданные,
+    `alias`, `category`. Пример: внешняя система берёт меню, вызывает `/dictionary/dictionary/pages`, сортирует по типу, обновляет
+    ссылки без доступа к внутренней CMS.
 
+    '
 paths:
-  # === Courses ===
-
   /course/course/index:
     get:
       operationId: listCourses
-      tags: [Courses]
+      tags:
+      - Courses
       summary: Получить каталог курсов
       description: Возвращает список доступных курсов с базовой информацией (только чтение)
       parameters:
-        - $ref: './core/common/parameters.yaml#/components/parameters/Page'
-        - $ref: './core/common/parameters.yaml#/components/parameters/PerPage'
-        - name: category_id
-          in: query
-          required: false
-          schema:
-            type: integer
-            minimum: 1
-          description: Фильтр по ID категории курсов
-        - name: status
-          in: query
-          required: false
-          schema:
-            type: string
-            enum: [active, inactive, archived]
-            default: active
-          description: Фильтр по статусу курса
-        - name: featured
-          in: query
-          required: false
-          schema:
-            type: boolean
-            default: false
-          description: Показать только рекомендуемые курсы
+      - $ref: ./core/common/parameters.yaml#/components/parameters/Page
+      - $ref: ./core/common/parameters.yaml#/components/parameters/PerPage
+      - name: title
+        in: query
+        schema:
+          type: string
+        description: Поиск по названию курса
+      - name: type
+        in: query
+        schema:
+          type: integer
+        description: Тип курса (см. Course::TYPE_*)
+      - name: enabled
+        in: query
+        schema:
+          type: string
+        description: Фильтр по признаку доступности
+      - name: sort
+        in: query
+        schema:
+          type: string
+        description: Поле сортировки
+      - name: status
+        in: query
+        schema:
+          type: string
+        description: Статус курса
+      - name: type_id
+        in: query
+        schema:
+          type: integer
+        description: ID типа (product id)
       responses:
         '200':
           description: List of courses
@@ -62,86 +79,108 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: array
+                - $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        pagination:
+                          $ref: ./core/common/schemas.yaml#/components/schemas/PaginationMeta
                         items:
-                          type: object
-                          properties:
-                            id:
-                              type: integer
-                              example: 101
-                            title:
-                              type: string
-                              example: "Онбординг"
-                            description:
-                              type: string
-                              example: "Базовый курс для новых сотрудников"
-                            status:
-                              type: string
-                              example: "active"
-                            price:
-                              type: number
-                              example: 1990
-                            duration:
-                              type: string
-                              example: "6h"
-                            category:
-                              type: object
-                              properties:
-                                id:
-                                  type: integer
-                                  example: 5
-                                name:
-                                  type: string
-                                  example: "Корпоративное обучение"
-                            thumbnail_url:
-                              type: string
-                              example: "https://cdn.space/courses/101.png"
-                            lms_id:
-                              type: integer
-                              description: ID курса в LMS системе
-                              example: 501
-                            student_count:
-                              type: integer
-                              example: 240
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              id:
+                                type: integer
+                                example: 101
+                              title:
+                                type: string
+                                example: Онбординг
+                              description:
+                                type: string
+                                example: Базовый курс для новых сотрудников
+                              status:
+                                type: string
+                                example: active
+                              price:
+                                type: number
+                                example: 1990
+                              duration:
+                                type: string
+                                example: 6h
+                              category:
+                                type: object
+                                properties:
+                                  id:
+                                    type: integer
+                                    example: 5
+                                  name:
+                                    type: string
+                                    example: Корпоративное обучение
+                              thumbnail_url:
+                                type: string
+                                example: https://cdn.space/courses/101.png
+                              lms_id:
+                                type: integer
+                                description: ID курса в LMS системе
+                                example: 501
+                              student_count:
+                                type: integer
+                                example: 240
               examples:
                 courses_page:
                   summary: Список курсов с фильтром по статусу
                   value:
                     success: true
                     data:
+                      pagination:
+                        total: 2
+                        page: 1
+                        per_page: 20
+                      items:
                       - id: 101
-                        title: "Онбординг"
-                        description: "Базовый курс для новых сотрудников"
-                        status: "active"
+                        title: Онбординг
+                        description: Базовый курс для новых сотрудников
+                        status: active
                         price: 0
-                        duration: "2h"
-                        category: { id: 5, name: "Корпоративное обучение" }
-                        thumbnail_url: "https://cdn.space/courses/101.png"
+                        duration: 2h
+                        category:
+                          id: 5
+                          name: Корпоративное обучение
+                        thumbnail_url: https://cdn.space/courses/101.png
                         lms_id: 501
                         student_count: 240
                       - id: 102
-                        title: "Продажи B2B"
-                        description: "Практикум по продажам"
-                        status: "active"
+                        title: Продажи B2B
+                        description: Практикум по продажам
+                        status: active
                         price: 1990
-                        duration: "6h"
-                        category: { id: 6, name: "Продажи" }
-                        thumbnail_url: "https://cdn.space/courses/102.png"
+                        duration: 6h
+                        category:
+                          id: 6
+                          name: Продажи
+                        thumbnail_url: https://cdn.space/courses/102.png
                         lms_id: 502
                         student_count: 120
-
+        '422':
+          $ref: ./core/common/responses.yaml#/components/responses/UnprocessableEntity
+        '403':
+          $ref: ./core/common/responses.yaml#/components/responses/Forbidden
+        '500':
+          $ref: ./core/common/responses.yaml#/components/responses/InternalError
+      security:
+      - BearerToken: []
   /course/course/view:
     get:
       operationId: getCourse
-      tags: [Courses]
+      tags:
+      - Courses
       summary: Получить детальную информацию о курсе
       description: Возвращает полную информацию о курсе включая программу обучения (только чтение)
       parameters:
-        - $ref: './core/common/parameters.yaml#/components/parameters/Id'
+      - $ref: ./core/common/parameters.yaml#/components/parameters/Id
       responses:
         '200':
           description: Course details
@@ -149,14 +188,14 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          item:
-                            $ref: './core/common/schemas.yaml#/components/schemas/CourseDetail'
+                - $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        item:
+                          $ref: ./core/common/schemas.yaml#/components/schemas/CourseDetail
               examples:
                 course_detail:
                   summary: Детальный курс с программой
@@ -165,48 +204,69 @@ paths:
                     data:
                       item:
                         id: 101
-                        title: "Онбординг"
-                        description: "Базовый курс для новых сотрудников"
-                        status: "active"
+                        title: Онбординг
+                        description: Базовый курс для новых сотрудников
+                        status: active
                         price: 0
-                        duration: "2h"
-                        level: "beginner"
-                        category: { id: 5, name: "Корпоративное обучение" }
-                        instructor: { id: 77, name: "Анна Смирнова", avatar_url: "https://cdn.space/instructors/77.png" }
-                        thumbnail_url: "https://cdn.space/courses/101.png"
+                        duration: 2h
+                        level: beginner
+                        category:
+                          id: 5
+                          name: Корпоративное обучение
+                        instructor:
+                          id: 77
+                          name: Анна Смирнова
+                          avatar_url: https://cdn.space/instructors/77.png
+                        thumbnail_url: https://cdn.space/courses/101.png
                         lms_id: 501
                         syllabus:
-                          - id: 1
-                            title: "Введение"
-                            description: "Как работать в системе"
-                            duration: "10m"
-                            order: 1
-                        requirements: ["Корпоративная почта"]
-                        outcomes: ["Понимание процессов компании"]
+                        - id: 1
+                          title: Введение
+                          description: Как работать в системе
+                          duration: 10m
+                          order: 1
+                        requirements:
+                        - Корпоративная почта
+                        outcomes:
+                        - Понимание процессов компании
                         student_count: 240
                         rating: 4.8
                         reviews_count: 56
-                        created_at: "2024-01-10T09:00:00Z"
-                        updated_at: "2024-11-02T11:00:00Z"
+                        created_at: '2024-01-10T09:00:00Z'
+                        updated_at: '2024-11-02T11:00:00Z'
         '404':
           description: Course not found
-          $ref: './core/common/responses.yaml#/components/responses/NotFound'
-
-  # === Page dictionaries (read-only) ===
-
+          $ref: ./core/common/responses.yaml#/components/responses/NotFound
+        '500':
+          $ref: ./core/common/responses.yaml#/components/responses/InternalError
+      security:
+      - BearerToken: []
   /dictionary/dictionary/page-types:
     get:
       operationId: listPageTypes
-      tags: [Pages]
+      tags:
+      - Pages
       summary: Получить список типов страниц
-      description: |
-        Справочник типов страниц сайта и продуктов (read-only): landing, blog, help, legal и другие.
+      description: 'Справочник типов страниц сайта и продуктов (read-only): landing, blog, help, legal и другие.
+
 
         **Назначение:** дать фронтам и внешним CMS нормализованные типы для фильтров и группировки страниц/лендингов.
 
-        **Ключевые особенности:** стабильные коды типов, совместимость с `/dictionary/dictionary/pages`, можно кешировать на клиенте.
+
+        **Ключевые особенности:** стабильные коды типов, совместимость с `/dictionary/dictionary/pages`, можно кешировать
+        на клиенте.
+
 
         **Пример Use case:** SPA-витрина запрашивает типы, строит фильтры и подсветку меню по категориям страниц.
+
+        '
+      parameters:
+      - name: type
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Фильтр по типу страницы
       responses:
         '200':
           description: Page types list
@@ -214,19 +274,19 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
+                - $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        items:
+                          type: array
                           items:
-                            type: array
-                            items:
-                              $ref: '#/components/schemas/PageType'
-                            example:
-                              id: 3
-                              name: "landing"
+                            $ref: '#/components/schemas/PageType'
+                          example:
+                          - id: 3
+                            name: landing
               examples:
                 page_types:
                   summary: Доступные типы страниц
@@ -234,26 +294,36 @@ paths:
                     success: true
                     data:
                       items:
-                        - id: 3
-                          name: "landing"
-                        - id: 4
-                          name: "blog"
+                      - id: 3
+                        name: landing
+                      - id: 4
+                        name: blog
         '400':
-          $ref: './core/common/responses.yaml#/components/responses/BadRequest'
-
+          $ref: ./core/common/responses.yaml#/components/responses/BadRequest
+      security:
+      - BearerToken: []
   /dictionary/dictionary/pages:
     get:
       operationId: listPages
-      tags: [Pages]
+      tags:
+      - Pages
       summary: Получить справочник страниц
-      description: |
-        Доступные страницы сайта (лендинги, продуктовые страницы) с базовыми метаданными (read-only): `title`, `alias`, `type`, `enabled`, SEO-атрибуты.
+      description: 'Доступные страницы сайта (лендинги, продуктовые страницы) с базовыми метаданными (read-only): `title`,
+        `alias`, `type`, `enabled`, SEO-атрибуты.
 
-        **Назначение:** раскрыть структуру публичных и закрытых страниц, чтобы внешние CMS могли собирать меню и лендинги без доступа в админку.
 
-        **Ключевые особенности:** фильтрация по типу (используйте `/dictionary/dictionary/page-types`), статус `enabled`, поля `alias` и `category` для навигации.
+        **Назначение:** раскрыть структуру публичных и закрытых страниц, чтобы внешние CMS могли собирать меню и лендинги
+        без доступа в админку.
 
-        **Пример Use case:** внешняя система заимствует SPA-меню, вызывает `/dictionary/dictionary/pages`, сортирует по типу и обновляет ссылки на новом сайте без внутреннего CMS.
+
+        **Ключевые особенности:** фильтрация по типу (используйте `/dictionary/dictionary/page-types`), статус `enabled`,
+        поля `alias` и `category` для навигации.
+
+
+        **Пример Use case:** внешняя система заимствует SPA-меню, вызывает `/dictionary/dictionary/pages`, сортирует по типу
+        и обновляет ссылки на новом сайте без внутреннего CMS.
+
+        '
       responses:
         '200':
           description: Pages list
@@ -261,23 +331,23 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
+                - $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        items:
+                          type: array
                           items:
-                            type: array
-                            items:
-                              $ref: '#/components/schemas/DictionaryPage'
-                            example:
-                              id: 12
-                              alias: "product-page-42"
-                              title: "Курс \"Data Science\""
-                              description: "Лендинг продукта Data Science"
-                              enabled: true
-                              type: "product-page"
+                            $ref: '#/components/schemas/DictionaryPage'
+                          example:
+                          - id: 12
+                            alias: product-page-42
+                            title: Курс "Data Science"
+                            description: Лендинг продукта Data Science
+                            enabled: true
+                            type: product-page
               examples:
                 pages_dict:
                   summary: Справочник страниц
@@ -285,46 +355,52 @@ paths:
                     success: true
                     data:
                       items:
-                        - id: 12
-                          alias: "product-page-42"
-                          title: "Курс \"Data Science\""
-                          description: "Лендинг продукта Data Science"
-                          enabled: true
-                          type: "product-page"
-                        - id: 18
-                          alias: "help-center"
-                          title: "Центр помощи"
-                          description: "Справочные статьи"
-                          enabled: true
-                          type: "help"
+                      - id: 12
+                        alias: product-page-42
+                        title: Курс "Data Science"
+                        description: Лендинг продукта Data Science
+                        enabled: true
+                        type: product-page
+                      - id: 18
+                        alias: help-center
+                        title: Центр помощи
+                        description: Справочные статьи
+                        enabled: true
+                        type: help
         '400':
-          $ref: './core/common/responses.yaml#/components/responses/BadRequest'
-
-  # === Pages ===
-
+          $ref: ./core/common/responses.yaml#/components/responses/BadRequest
+      security:
+      - BearerToken: []
   /page/page/index:
     get:
-      tags: [Pages]
+      tags:
+      - Pages
       summary: Получить список страниц сайта
       description: Возвращает список публичных страниц сайта (только чтение)
       parameters:
-        - $ref: './core/common/parameters.yaml#/components/parameters/Page'
-        - $ref: './core/common/parameters.yaml#/components/parameters/PerPage'
-        - name: type
-          in: query
-          required: false
-          schema:
-            type: string
-            enum: [landing, blog, help, legal]
-          description: Фильтр по типу страницы
-        - name: status
-          in: query
-          required: false
-          schema:
-            type: string
-            enum: [published, draft]
-            default: published
-          description: Фильтр по статусу публикации
+      - $ref: ./core/common/parameters.yaml#/components/parameters/Page
+      - $ref: ./core/common/parameters.yaml#/components/parameters/PerPage
+      - name: type
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - landing
+          - blog
+          - help
+          - legal
+        description: Фильтр по типу страницы
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - published
+          - draft
+          default: published
+        description: Фильтр по статусу публикации
       responses:
         '200':
           description: List of pages
@@ -332,57 +408,69 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
+                - $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        items:
+                          type: array
                           items:
-                            type: array
-                            items:
-                              type: object
-                              properties:
-                                id:
-                                  type: integer
-                                title:
-                                  type: string
-                                slug:
-                                  type: string
-                                type:
-                                  type: string
-                                status:
-                                  type: string
-                                excerpt:
-                                  type: string
-                                thumbnail_url:
-                                  type: string
-                                published_at:
-                                  type: string
-                                author:
-                                  type: object
-                                  properties:
-                                    id:
-                                      type: integer
-                                    name:
-                                      type: string
-                                tags:
-                                  type: array
-                                  items:
+                            type: object
+                            properties:
+                              id:
+                                type: integer
+                                example: 1
+                              title:
+                                type: string
+                                example: example
+                              slug:
+                                type: string
+                                example: example
+                              type:
+                                type: string
+                                example: example
+                              status:
+                                type: string
+                                example: active
+                              excerpt:
+                                type: string
+                                example: example
+                              thumbnail_url:
+                                type: string
+                                example: https://example.com/document.pdf
+                              published_at:
+                                type: string
+                                example: example
+                              author:
+                                type: object
+                                properties:
+                                  id:
+                                    type: integer
+                                    example: 1
+                                  name:
                                     type: string
-
+                                    example: John Doe
+                              tags:
+                                type: array
+                                items:
+                                  type: string
+      security:
+      - BearerToken: []
   /page/page/view:
     get:
-      tags: [Pages]
+      tags:
+      - Pages
       summary: Получить содержимое страницы
       description: Возвращает полное содержимое страницы с HTML контентом (только чтение)
       parameters:
-        - name: slug
-          in: query
-          required: true
-          schema:
-            type: string
-          description: URL slug страницы или ID
+      - name: slug
+        in: query
+        required: true
+        schema:
+          type: string
+        description: URL slug страницы или ID
       responses:
         '200':
           description: Page content
@@ -390,59 +478,76 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: './core/common/schemas.yaml#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          id:
-                            type: integer
-                          title:
-                            type: string
-                          slug:
-                            type: string
-                          content:
-                            type: string
-                            description: HTML контент страницы
-                          excerpt:
-                            type: string
-                          type:
-                            type: string
-                          status:
-                            type: string
-                          seo_title:
-                            type: string
-                          seo_description:
-                            type: string
-                          thumbnail_url:
+                - $ref: ./core/common/schemas.yaml#/components/schemas/SuccessResponse
+                - type: object
+                  properties:
+                    data:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        title:
+                          type: string
+                          example: example
+                        slug:
+                          type: string
+                          example: example
+                        content:
+                          type: string
+                          description: HTML контент страницы
+                          example: example
+                        excerpt:
+                          type: string
+                          example: example
+                        type:
+                          type: string
+                          example: example
+                        status:
+                          type: string
+                          example: active
+                        seo_title:
+                          type: string
+                          example: example
+                        seo_description:
+                          type: string
+                          example: example
+                        thumbnail_url:
+                          type: string
+                          example: https://example.com/document.pdf
+                        published_at:
+                          type: string
+                          example: example
+                        author:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              example: 1
+                            name:
                               type: string
-                          published_at:
-                            type: string
-                          author:
-                            type: object
-                            properties:
-                              id:
-                                type: integer
-                              name:
-                                type: string
-                              avatar_url:
-                                type: string
-                          tags:
-                            type: array
-                            items:
+                              example: John Doe
+                            avatar_url:
                               type: string
-                          metadata:
-                            type: object
-                            description: Дополнительные метаданные страницы
-                          created_at:
+                              example: https://example.com/document.pdf
+                        tags:
+                          type: array
+                          items:
                             type: string
-                          updated_at:
-                            type: string
+                        metadata:
+                          type: object
+                          description: Дополнительные метаданные страницы
+                        created_at:
+                          type: string
+                          example: example
+                        updated_at:
+                          type: string
+                          example: example
         '404':
           description: Page not found
-          $ref: './core/common/responses.yaml#/components/responses/NotFound'
-
+          $ref: ./core/common/responses.yaml#/components/responses/NotFound
+      security:
+      - BearerToken: []
 components:
   schemas:
     PageType:
@@ -453,8 +558,7 @@ components:
           example: 3
         name:
           type: string
-          example: "product-page"
-
+          example: product-page
     DictionaryPage:
       type: object
       properties:
@@ -463,17 +567,23 @@ components:
           example: 12
         alias:
           type: string
-          example: "product-page-42"
+          example: product-page-42
         title:
           type: string
-          example: "Курс \"Data Science\""
+          example: Курс "Data Science"
         description:
           type: string
-          example: "Лендинг продукта Data Science"
+          example: Лендинг продукта Data Science
         enabled:
           type: boolean
           example: true
         type:
           type: string
           description: Тип страницы (используйте справочник page-types)
-          example: "course-and-training-promo-page"
+          example: course-and-training-promo-page
+  securitySchemes:
+    BearerToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT Bearer token for authentication
