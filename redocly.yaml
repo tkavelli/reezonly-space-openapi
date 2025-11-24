@@ -6,7 +6,7 @@ extends:
   - recommended
 
 logo: # Путь к картинке и альт-текст (ВЕРХНИЙ УРОВЕНЬ)
-  image: /img/logo.svg # Изменен на абсолютный путь
+  image: ./img/logo.svg # Относительный путь для GitHub Pages
   altText: Reezonly Space
 
 openapi:
