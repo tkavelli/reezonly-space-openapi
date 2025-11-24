@@ -33,7 +33,7 @@ COPY --from=build /app/bundles ./bundles
 COPY --from=build /app/docs ./docs
 COPY --from=build /app/space-platform-api.yaml ./space-platform-api.yaml
 # Expose top-level index for convenience (opens docs)
-RUN ln -s ./docs/index.html ./index.html
+RUN if [ -f ./docs/index.html ]; then ln -s ./docs/index.html ./index.html; fi
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
