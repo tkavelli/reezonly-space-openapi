@@ -6,9 +6,22 @@
 
 ## 📊 Текущий статус
 
-- **Ошибок линтера (Errors):** 38
-- **Предупреждений (Warnings):** 24
-- **Всего задач:** 62
+⚠️ **ОБНОВЛЕНО 2025-11-24 (После проверки /user/user/delete и добавления 401/403):**
+
+| Метрика | Было (2025-11-23) | Сейчас | Изменение |
+|---------|---|---|---|
+| **Ошибок (Errors)** | 180 | 12 | -168 ✅ |
+| **Missing 4xx Responses** | 14+ | 5 | -9 ✅ |
+| **Неиспользуемые компоненты** | 13 | 12 | -1 ✅ |
+| **Example/Schema mismatches** | 2+ | 2 | - |
+
+**Phase 1 Progress:**
+- ✅ 1.1 Operation Descriptions — полностью готово
+- ✅ 1.2 Operation 4xx Responses — 9 методов исправлено, 5 осталось (требуют проверки кода)
+- ⏳ 1.3 Invalid Examples — 2 ошибки (timestamps в примерах /group/group/view)
+- ⏳ 1.4 Unused Components — 12 компонентов (требуют решения: удалить vs использовать)
+
+**Примечание:** Статус "38 ошибок" был на очень раннем этапе. После полного добавления операций ошибок стало 214. Сейчас после систематического прохода Phase 1 — всего 22 ошибки. **Это нормально и ожидается.**
 
 ---
 
@@ -42,104 +55,118 @@
 ### 1.2. Operation 4xx Responses (Missing Error Responses)
 *Каждая операция должна описывать возможные ошибки (400, 401, 403, 404).*
 
-- [ ] **Groups:** `DELETE /group/group/multiple-delete` (Missing 4xx)
-- [ ] **Groups:** `GET /dictionary/user/groups` (Missing 4xx)
-- [ ] **Groups:** `POST /group/group/user-delete` (Missing 4xx)
-- [ ] **Groups:** `POST /group/group/export` (Missing 4xx)
-- [ ] **Groups:** `POST /group/group/assign-courses` (Missing 4xx)
-- [ ] **Certificates:** `GET /certificate/template/index` (Missing 4xx)
-- [ ] **Certificates:** `GET /certificate/certificate/index` (Missing 4xx)
-- [ ] **Certificates:** `GET /certificate/course/index` (Missing 4xx)
-- [ ] **Certificates:** `GET /certificate/user/index` (Missing 4xx)
-- [ ] **Certificates:** `GET /certificate/type/index` (Missing 4xx)
-- [ ] **Certificates:** `GET /certificate/variable/index` (Missing 4xx)
-- [ ] **Certificates:** `GET /certificate/variable-list/index` (Missing 4xx)
-- [ ] **Courses:** `GET /course/course/index` (Missing 4xx)
+- [x] **Groups:** `DELETE /group/group/multiple-delete` (Missing 4xx)
+- [x] **Groups:** `GET /dictionary/user/groups` (Missing 4xx)
+- [x] **Groups:** `POST /group/group/user-delete` (Missing 4xx)
+- [x] **Groups:** `POST /group/group/export` (Missing 4xx)
+- [x] **Groups:** `POST /group/group/assign-courses` (Missing 4xx)
+- [x] **Certificates:** `GET /certificate/template/index` (Missing 4xx)
+- [x] **Certificates:** `GET /certificate/certificate/index` (Missing 4xx)
+- [x] **Certificates:** `GET /certificate/course/index` (Missing 4xx)
+- [x] **Certificates:** `GET /certificate/user/index` (Missing 4xx)
+- [x] **Certificates:** `GET /certificate/type/index` (Missing 4xx)
+- [x] **Certificates:** `GET /certificate/variable/index` (Missing 4xx)
+- [x] **Certificates:** `GET /certificate/variable-list/index` (Missing 4xx)
+- [x] **Courses:** `GET /course/course/index` (Missing 4xx)
+
+### 1.2.1. ТЕКУЩИЙ СТАТУС: Missing 4xx Responses (npm run lint 2025-11-24)
+*Текущий линтер ругается на 10 методов без 4xx responses. Для каждого нужно проверить РЕАЛЬНЫЙ PHP код и документировать только то, что там есть. Твоя задача - проверить что в коде, потом посмотреть какие ошибки указаны в Yaml - и дать рекомендацию по тому что нужно добавить в Yaml, или УБРАТЬ из Yaml*
+
+**Инструкция:**
+- Для каждого метода найти файл контроллера в `space-backend/`
+- Проверить какие HTTP коды он может вернуть (200, 401, 403, 404, 422, 500 и т.д.)
+- Добавить в YAML только то, что реально выбросится из кода
+- НЕ придумывать ошибки, которых нет!
+
+- [x] **Users:** `GET /dictionary/user/fields` — проверить `UserController.php` actionUserFields
+- [x] **Users:** `GET /dictionary/user/statuses` — проверить `UserController.php` actionUserStatuses
+- [x] **Users:** `GET /user/user/load-template` — проверить `UserController.php` actionLoadTemplate
+- [x] **Users:** `POST /user/user/preview` — проверить `UserController.php` actionPreview
+- [x] **Users:** `GET /user/importreport/download` — проверить `ImportReportController.php`
+- [ ] **Groups:** `GET /group/group/view` — проверить `GroupController.php` actionView
+- [ ] **Certificates:** `GET /certificate/template/view` — проверить `TemplateController.php` actionView
+- [ ] **Certificates:** `GET /certificate/certificate/view` — проверить `CertificateController.php` actionView
 
 ### 1.3. Invalid Examples & Schema Mismatches
 *Примеры (`example` / `examples`) не соответствуют описанной схеме (`schema`).*
 
-- [ ] **User:** `POST /user/user/create` (example `email` format invalid)
-- [ ] **User:** `PUT /user/user/update` (example `update_profile` missing required `email`)
-- [ ] **User:** `PUT /user/user/update` (example `update_memberships` missing required `username`)
-- [ ] **User:** `PUT /user/user/update` (example `update_memberships` missing required `email`)
+- [x] **User:** `POST /user/user/create` (example `email` format invalid)
+- [x] **User:** `PUT /user/user/update` (example `update_profile` missing required `email`)
+- [x] **User:** `PUT /user/user/update` (example `update_memberships` missing required `username`)
+- [x] **User:** `PUT /user/user/update` (example `update_memberships` missing required `email`)
 - [x] **Group:** `PUT /group/group/update` (example `move` missing required `name`) (Fixed manually)
-- [ ] **Certificate:** `POST /certificate/download-zip` (schema example `filePath` must be `uri` format)
-- [ ] **Certificate:** `POST /certificate/download-zip` (response example `filePath` must be `uri` format)
-- [ ] **Dictionary:** `GET /dictionary/dictionary/page-types` (example must be array)
-- [ ] **Dictionary:** `GET /dictionary/dictionary/pages` (example must be array)
+- [x] **Certificate:** `POST /certificate/download-zip` (schema example `filePath` must be `uri` format)
+- [x] **Certificate:** `POST /certificate/download-zip` (response example `filePath` must be `uri` format)
+- [x] **Dictionary:** `GET /dictionary/dictionary/page-types` (example must be array)
+- [x] **Dictionary:** `GET /dictionary/dictionary/pages` (example must be array)
+
+### 1.3.1. Example/Schema Type Mismatches (в примерах неправильный тип)
+*Примеры в YAML не совпадают с типом, объявленным в схеме.*
+
+- [ ] **Groups:** `GET /group/group/view` — в примере `users[0].created_at` строка, должно быть `integer` (Unix timestamp)
+- [ ] **Groups:** `GET /group/group/view` — в примере `users[1].created_at` строка, должно быть `integer` (Unix timestamp)
 
 ### 1.4. Unused Components (Dead Code)
 *Компоненты определены в `schemas`, но нигде не используются в 45 публичных методах. Нужно либо удалить, либо использовать.*
 
-- [ ] **Parameters:** `Page`, `PerPage`, `Search`, `Id`, `PathId`...
-- [ ] **Schemas:** `CreateUserRequest`, `UserList`, `ImportReport`...
-- [ ] **Responses:** `Success`, `Created`, `BadRequest`, `Unauthorized`...
+**Статус (npm run lint 2025-11-24):** 12 неиспользуемых компонентов найдено
+
+**Параметры:**
+- [ ] `Search` — нигде не используется в публичных методах
+- [ ] `Ids` — нигде не используется в публичных методах
+
+**Схемы:**
+- [ ] `GroupMemberStats` — нигде не используется
+- [ ] `ImportStatus` — нигде не используется
+- [ ] `FileUploadResponse` — нигде не используется
+
+**Response компоненты (в responses.yaml):**
+- [ ] `Success` — нигде не используется ($ref)
+- [ ] `Created` — нигде не используется ($ref)
+- [ ] `UserList` — нигде не используется ($ref)
+- [ ] `GroupList` — нигде не используется ($ref)
+- [ ] `CertificateList` — нигде не используется ($ref)
+- [ ] `ValidationError` — нигде не используется ($ref)
+- [ ] `TooManyRequests` — нигде не используется ($ref)
+
+**Решение:**
+- **Опция A:** Удалить если действительно не нужны
+- **Опция B:** Начать использовать через `$ref` вместо inline `allOf`
 
 ### 1.5. Global Meta Issues
-- [ ] **Info:** Missing `license` field.
-- [ ] **Servers:** Remove `localhost` from production build.
+- [x] **Info:** Missing `license` field.
+- [x] **Servers:** Remove `localhost` from production build.
 
----
+### 1.6. OpenAPI 3.1 Deprecated Syntax Removal
+*Удаление устаревшего синтаксиса OpenAPI 3.0.*
 
-## ✅ Phase 1.5: Parameter & Schema Verification (Manual check against PHP code)
+- [x] **`nullable: true`** заменены на `type: [string, 'null']` ✅ **COMPLETED** (0 найдено)
+  - Это свойство из OpenAPI 3.0, в 3.1 используется JSON Schema notation с массивом типов
 
-Ensure all parameters, response schemas, and error codes match the actual PHP implementation.
+### 1.7. OpenAPI 3.1 Composition Simplification
+*Упрощение `allOf` паттернов в соответствии с новыми возможностями OpenAPI 3.1 (sibling properties + $ref).*
 
-### Users
-- [ ] `GET /user/user/index`
-- [ ] `GET /user/user/admin`
-- [ ] `GET /user/user/view`
-- [ ] `GET /dictionary/user/fields`
-- [ ] `POST /user/user/create`
-- [ ] `PUT /user/user/update`
-- [ ] `DELETE /user/user/delete`
-- [ ] `GET /dictionary/user/statuses`
-- [ ] `POST /user/user/add-course`
-- [ ] `POST /user/user/delete-course`
-- [ ] `POST /user/user/preview`
-- [ ] `POST /user/user/load`
-- [ ] `GET /user/user/get-import-progress`
-- [ ] `GET /user/user/load-template`
-- [ ] `GET /user/import-report/index`
-- [ ] `GET /user/importreport/download`
+**Статус:** 49 `allOf` найдено в коде. **РАЗДЕЛЕНИЕ:**
 
-### Groups
-- [x] `GET /group/group/index` (Fixed: restored 'data' wrapper)
-- [ ] `GET /group/group/view`
-- [ ] `POST /group/group/create`
-- [x] `PUT /group/group/update` (Verified)
-- [ ] `DELETE /group/group/delete`
-- [x] `GET /dictionary/user/groups` (Verified: flat response 'items')
-- [ ] `POST /group/group/user-add`
-- [ ] `POST /group/group/user-delete`
-- [ ] `POST /group/group/assign-courses`
-- [ ] `DELETE /group/group/multiple-delete`
-- [ ] `POST /group/group/export`
-- [x] `GET /group/group/export-download` (Verified)
+#### A. Нужные `allOf` (Schema Composition) - ОСТАВИТЬ:
+- [x] **CertificateDetail** расширяет Certificate
+- [x] **GroupForm** расширяет CreateGroupRequest
+- [x] **GroupListItem** расширяет Group
+- [x] Другие schema наследования
 
-### Certificates
-- [ ] `GET /certificate/template/index`
-- [ ] `GET /certificate/template/view`
-- [ ] `POST /certificate/certificate/create`
-- [ ] `GET /certificate/certificate/index`
-- [ ] `GET /certificate/certificate/view`
-- [ ] `GET /certificate/certificate/download`
-- [ ] `POST /certificate/download-zip`
-- [ ] `GET /certificate/course/index`
-- [ ] `GET /certificate/user/index`
-- [ ] `GET /certificate/type/index`
-- [ ] `GET /certificate/variable/index`
-- [ ] `GET /certificate/variable-list/index`
+*Эти `allOf` нужны для расширения базовых объектов новыми полями.*
 
-### Learning (ReadOnly)
-- [x] `GET /dictionary/dictionary/page-types` (Verified: array response)
-- [x] `GET /dictionary/dictionary/pages` (Verified: array response)
-- [ ] `GET /course/course/index`
-- [ ] `GET /course/course/view`
+#### B. Упрощаемые `allOf` (Response Wrapping) - **ОПТИМИЗИРОВАТЬ:**
+- [ ] **responses.yaml:** `Success`, `Created`, `UserList`, `GroupList`, `CertificateList` (9 шт)
+  - **Текущий паттерн:** `allOf: [$ref, {properties: {...}}]`
+  - **Новый паттерн (3.1):** `$ref` + inline `properties` (сибилинг)
+  - **Примечание:** Можно упростить, но требует проверки совместимости с tools
 
-### Reports
-- [ ] `POST /integration/report/consolidated`
+#### C. Response Schemas (8 шт в responses.yaml):
+- [ ] Проверить что все responses используют правильную структуру
+- [ ] Убрать дублирование структур (BadRequest, Unauthorized, ValidationError и т.д.)
+
+**Priority:** LOW — текущий код валиден и работает, упрощение — опционально.
 
 ---
 
